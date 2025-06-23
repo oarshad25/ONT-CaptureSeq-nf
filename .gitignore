@@ -1,0 +1,10 @@
+*.nextflow.log*
+.nextflow*
+results/
+work/
+data/
+
+.vscode/
+*.code-workspace
+
+.DS_Store
