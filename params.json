@@ -1,0 +1,8 @@
+{
+    "inputdir": "path/to/inputdir",
+    "samplesheet": "",
+    "genome": "path/to/genome.fa",
+    "annotation": "path/to/annotation.gtf",
+    "outdir": "results",
+    "help": false
+}
