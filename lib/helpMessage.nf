@@ -9,18 +9,18 @@ def helpMessage() {
         Required Arguments:
 
         Input Data:
-        --inputdir              Path to parent read directory containing demultiplexed
-                                barcode subdirectories with fastq reads for each barcode.
+        --inputdir <path>           Path to parent read directory containing demultiplexed
+                                    barcode subdirectories with fastq reads for each barcode.
         or
-        --samplesheet           Path to sample manifest 'csv' file.
-                                Must have columns: id, path
+        --samplesheet <path>        Path to sample manifest 'csv' file.
+                                    Must have columns: id, path
 
         Reference Data:
-        --genome                Reference genome FASTA to use for alignment.
-        --annotation            Reference annotation as GTF.
+        --genome <path>             Reference genome FASTA to use for alignment.
+        --annotation <path>         Reference annotation as GTF.
 
         Optional Arguments:
-        --outdir                Path to output directory.
+        --outdir <path>             Path to output directory.
         """.stripIndent()
     )
 }
