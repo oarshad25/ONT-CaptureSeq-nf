@@ -3,6 +3,13 @@
 include { helpMessage } from "./helpMessage"
 
 def checkParams() {
+
+    /*
+    validate parameters
+    -------------------
+    check if required parameters have been provided
+    */
+
     // must specify one of --inputdir or --samplesheet
     if (!params.inputdir && !params.samplesheet) {
         log.info(
@@ -43,5 +50,30 @@ def checkParams() {
         )
         helpMessage()
         System.exit(1)
+    }
+
+    /*
+    validate paths
+    -------------------
+    check if provided input paths for input directory or samplesheet and
+    references exist
+    */
+
+    //check if provided input paths exist
+
+    if (params.inputdir && !file(params.inputdir).exists()) {
+        error("Input directory: `${params.inputdir}` does not exist")
+    }
+
+    if (params.samplesheet && !file(params.samplesheet).exists()) {
+        error("Sample manifest: `${params.samplesheet}` does not exist")
+    }
+
+    if (params.genome && !file(params.genome).exists()) {
+        error("Genome: `${params.genome}` does not exist")
+    }
+
+    if (params.annotation && !file(params.annotation).exists()) {
+        error("Annotation: `${params.annotation}` does not exist")
     }
 }
