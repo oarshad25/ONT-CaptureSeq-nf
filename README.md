@@ -53,10 +53,10 @@ containing one level of sub-directories which in turn contain FASTQ files
 OR
 
 (b) *sample manifest:* Path to sample sheet in csv format. The sample manifest should be a comma seperated values (.csv)
-file and include at least two columns named `id` and `path`
+file and include at least two columns named `id` and `fastqdir`
 
-- the `id` column is the sample id for each barcode
-- the `path` column is the path to the directory containing the fastq files for the barcode.
+- the `id` column is the sample id for each sample/barcode
+- the `fastqdir` column is the path to the directory containing the fastq files for the barcode.
 
 
 ### Pipeline parameters
