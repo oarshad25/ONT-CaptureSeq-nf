@@ -5,6 +5,9 @@ include { helpMessage } from "./lib/helpMessage"
 include { checkParams } from "./lib/checkParams"
 include { pipelineHeader } from "./lib/pipelineHeader"
 
+// include process modules
+include { CONCAT_FASTQ } from "./modules/concat_fastq"
+
 workflow {
 
     // Show help message if --help is run
@@ -21,9 +24,7 @@ workflow {
     pipelineHeader()
 
     /*
-    ============================================================================
-    Create input channels
-    ============================================================================
+    * CREATE INPUT CHANNELS
     */
 
     // If the --inputdir option was provided
@@ -32,7 +33,9 @@ workflow {
         log.info("USING INPUT DIRECTORY: ${params.inputdir}")
 
         /*
-        set input data channel [meta, fastqdir]
+        make input data channel with the sample metamap and path to fastq
+        directory of reads
+        [meta, fastqdir]
         Take 'params.inputdir' and create a tuple channel [meta, fastqdir]
         - meta: a metadata map. meta.id is he sample id which is taken from
           the name of each sample subdirectory in params.inputdir e.g. [id: barcode01]
@@ -62,7 +65,7 @@ workflow {
         // otherwise samplesheet was provided
         log.info("USING SAMPLESHEET: ${params.samplesheet}")
 
-        // create input channel from sample sheet [meta, fastqdir]
+        // create input channel from sample sheet
 
         // TODO: Validate samplesheet
         // Add validation of samplesheet to ensure it has requisite columns
@@ -70,6 +73,7 @@ workflow {
         // Make a channel which includes
         // The sample name from the 'id' column
         // and path to fastq directory for reads from 'fastqdir' column
+        // [meta, fastqdir]
         Channel.fromPath(params.samplesheet, checkIfExists: true)
             .splitCsv(header: true)
             .flatten()
@@ -79,8 +83,6 @@ workflow {
                 [meta, fastqdir]
             }
             .set { input_ch }
-
-        input_ch.view()
     }
 
     // create reference genome fasta channel
@@ -88,4 +90,28 @@ workflow {
 
     // create reference genome fasta channel
     annotation_ch = file(params.annotation, checkIfExists: true)
+
+    /*
+    * CONCATENATE FQS PER SAMPLE
+    */
+
+    // https://github.com/asadprodhan/How-to-channel-sequencing-reads-from-multiple-subdirectories-into-nextflow-pipeline
+    // create a channel colecting all fastq files in the sample directory into a list
+    // [meta, fastq_files]
+
+    fastq_extns = ['.fastq', '.fastq.gz']
+
+    input_ch
+        .map { meta, fastqdir ->
+            // list all files in fastqdir
+            def all_files = file(fastqdir).listFiles()
+            // get files with extensions in fastq_extns
+            def fastq_files = all_files.findAll { fn -> fastq_extns.find { fn.name.endsWith(it) } }
+            //output a tuple of metadata map and list of fastq_files for sample
+            tuple(meta, fastq_files)
+        }
+        .set { fastq_files_ch }
+
+    // concatenate fastq files per sample
+    CONCAT_FASTQ(fastq_files_ch)
 }
