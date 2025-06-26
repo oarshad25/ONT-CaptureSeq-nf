@@ -72,6 +72,8 @@ The required parameters are as follows
 
 ### Additional parameters
 
-| Parameter | Type   | Description                  | Default   |
-| --------- | ------ | ---------------------------- | --------- |
-| `outdir`  | string | Output directory for results | `results` |
+| Parameter              | Type    | Description                                                                                                                                                                               | Default   |
+| ---------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| `outdir`               | string  | Output directory for results                                                                                                                                                              | `results` |
+| `min_reads_per_sample` | integer | Threshold for minimum number of reads per sample. Samples with number of reads below this threshold are filtered out. This is mainly to get rid of unassigned barcodes in input directory | 1000      |
+

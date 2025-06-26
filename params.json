@@ -4,5 +4,6 @@
     "genome": "path/to/genome.fa",
     "annotation": "path/to/annotation.gtf",
     "outdir": "results",
-    "help": false
+    "help": false,
+    "min_reads_per_sample": 1000
 }

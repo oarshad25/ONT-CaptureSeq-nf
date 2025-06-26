@@ -114,4 +114,18 @@ workflow {
 
     // concatenate fastq files per sample
     CONCAT_FASTQ(fastq_files_ch)
+
+    /*
+    * REMOVE SAMPLES WITH FEW READS
+    */
+
+    // filter out samples in the channel with less than `params.min_reads_per_sample` reads
+    // this is mainly to get rid of unassigned barcodes
+
+    // channel containing the merged fastq for samples that pass read count filter
+    // [meta, fastq]
+    reads_ch = CONCAT_FASTQ.out.merged_reads
+        .map { meta, fastq -> [meta, fastq, fastq.countFastq()] }
+        .filter { _meta, _fastq, numreads -> numreads > params.min_reads_per_sample }
+        .map { meta, fastq, _numreads -> tuple(meta, fastq) }
 }
