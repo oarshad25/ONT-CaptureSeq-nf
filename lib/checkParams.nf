@@ -52,4 +52,9 @@ def checkParams() {
     if (params.annotation && !file(params.annotation).exists()) {
         error("Annotation: `${params.annotation}` does not exist")
     }
+
+    // if input directory is provided, check that it is not empty
+    if (params.inputdir && file(params.inputdir).listFiles().size() == 0) {
+        error("Input directory: `${params.inputdir}` is empty")
+    }
 }
