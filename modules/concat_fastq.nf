@@ -50,7 +50,7 @@ output:
 process CONCAT_FASTQ {
     tag { meta.id }
 
-    publishDir "${params.outdir}/merged_reads", mode: 'copy'
+    publishDir "${params.outdir}/merged_reads", mode: 'link'
 
     input:
     // Reads to merge
