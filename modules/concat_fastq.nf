@@ -42,7 +42,7 @@ output:
           description: |
             Groovy Map containing sample information
             e.g. [ id:'test' ]
-      - "*.merged.fastq(.gz)":
+      - "*.fastq(.gz)":
           type: file
           description: Merged fastq file
 */
@@ -59,7 +59,7 @@ process CONCAT_FASTQ {
 
     output:
     // merged fastq file
-    tuple val(meta), path("${meta.id}.merged.${extn}"), emit: merged_reads
+    tuple val(meta), path("${meta.id}.${extn}"), emit: merged_reads
 
     script:
     if (fastq_files.every { it.name.endsWith('.fastq.gz') }) {
@@ -73,6 +73,6 @@ process CONCAT_FASTQ {
     }
 
     """
-    cat ${fastq_files} > "${meta.id}.merged.${extn}"
+    cat ${fastq_files} > "${meta.id}.${extn}"
     """
 }
