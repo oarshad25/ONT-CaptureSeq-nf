@@ -12,43 +12,23 @@ def checkParams() {
 
     // must specify one of --inputdir or --samplesheet
     if (!params.inputdir && !params.samplesheet) {
-        log.info(
-            """
-            "Please provide either 'read directory' or sample manifest with --inputdir OR --samplesheet"
-            """.stripIndent()
-        )
-        helpMessage()
+        error("Please provide either 'read directory' or sample manifest with --inputdir OR --samplesheet")
         System.exit(1)
     }
 
     // Should specify --inputdir OR --samplesheet, but not both
     if (params.inputdir && params.samplesheet) {
-        log.info(
-            """
-            Must specify either --inputdir OR --samplesheet, but not both
-            """.stripIndent()
-        )
-        helpMessage()
+        error("Must specify either --inputdir OR --samplesheet, but not both")
         System.exit(1)
     }
 
     if (!params.genome) {
-        log.info(
-            """
-            "No genome specified. Please provide genome fasta with --genome"
-            """.stripIndent()
-        )
-        helpMessage()
+        error("No genome specified. Please provide genome fasta with --genome")
         System.exit(1)
     }
 
     if (!params.annotation) {
-        log.info(
-            """
-            "No annotation GTF specified. Please provide GTF with --annotation"
-            """.stripIndent()
-        )
-        helpMessage()
+        error("No annotation GTF specified. Please provide GTF with --annotation")
         System.exit(1)
     }
 
@@ -63,17 +43,21 @@ def checkParams() {
 
     if (params.inputdir && !file(params.inputdir).exists()) {
         error("Input directory: `${params.inputdir}` does not exist")
+        System.exit(1)
     }
 
     if (params.samplesheet && !file(params.samplesheet).exists()) {
         error("Sample manifest: `${params.samplesheet}` does not exist")
+        System.exit(1)
     }
 
     if (params.genome && !file(params.genome).exists()) {
         error("Genome: `${params.genome}` does not exist")
+        System.exit(1)
     }
 
     if (params.annotation && !file(params.annotation).exists()) {
         error("Annotation: `${params.annotation}` does not exist")
+        System.exit(1)
     }
 }
