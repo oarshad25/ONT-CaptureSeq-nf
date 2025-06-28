@@ -1,0 +1,8 @@
+{
+    "inputdir": "data/test/wf-transcriptomes-demo/input_data",
+    "samplesheet": "",
+    "genome": "data/test/wf-transcriptomes-demo/hg38_chr20.fa",
+    "annotation": "data/test/wf-transcriptomes-demo/gencode.v22.annotation.chr20.gtf",
+    "outdir": "results",
+    "help": false
+}
