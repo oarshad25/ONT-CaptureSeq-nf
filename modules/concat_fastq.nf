@@ -17,10 +17,10 @@ Output a channel with merged fastq file added to the metamap
 name: concat_fastq
 description: Concatenates fastq files
 tools:
-  - cat:
+  - zcat:
       description: |
-        The cat utility reads files sequentially, writing them to the standard output.
-        documentation: https://www.gnu.org/software/coreutils/manual/html_node/cat-invocation.html
+        Concatenate (compressed) files
+        documentation: https://linux.die.net/man/1/zcat
       licence: ["GPL-3.0-or-later"]
       identifier: ""
 input:
@@ -42,7 +42,7 @@ output:
           description: |
             Groovy Map containing sample information
             e.g. [ id:'test' ]
-      - "*.fastq(.gz)":
+      - "*.fastq":
           type: file
           description: Merged fastq file
 */
@@ -59,20 +59,10 @@ process CONCAT_FASTQ {
 
     output:
     // merged fastq file
-    tuple val(meta), path("${meta.id}.${extn}"), emit: merged_reads
+    tuple val(meta), path("${meta.id}.fastq"), emit: merged_reads
 
     script:
-    if (fastq_files.every { it.name.endsWith('.fastq.gz') }) {
-        extn = 'fastq.gz'
-    }
-    else if (fastq_files.every { it.name.endsWith('.fastq') }) {
-        extn = 'fastq'
-    }
-    else {
-        error("Concatentation of mixed filetypes is unsupported")
-    }
-
     """
-    cat ${fastq_files} > "${meta.id}.${extn}"
+    zcat -f ${fastq_files} > "${meta.id}.fastq"
     """
 }
