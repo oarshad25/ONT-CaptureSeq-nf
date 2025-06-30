@@ -1,0 +1,8 @@
+{
+    "inputdir": "data/test/sirv/demultiplexed_fastq",
+    "samplesheet": "",
+    "genome": "data/test/sirv/SIRV_150601a.fasta",
+    "annotation": "data/test/sirv/SIRV_isoforms.gtf",
+    "outdir": "results/sirv",
+    "help": false
+}
