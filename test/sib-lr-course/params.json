@@ -1,0 +1,8 @@
+{
+    "inputdir": "data/test/sib-lr-course/reads",
+    "samplesheet": "",
+    "genome": "data/test/sib-lr-course/references/references/Homo_sapiens.GRCh38.dna.primary_assembly.chr5.chr6.chrX.fa",
+    "annotation": "data/test/sib-lr-course/references/references/Homo_sapiens.GRCh38.111.chr5.chr6.chrX.gtf",
+    "outdir": "results/sib-lr-course",
+    "help": false
+}
