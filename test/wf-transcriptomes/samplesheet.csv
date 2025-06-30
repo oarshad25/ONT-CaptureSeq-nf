@@ -1,0 +1,7 @@
+id,fastqdir
+sample01,data/test/wf-transcriptomes-demo/input_data/barcode01
+sample02,data/test/wf-transcriptomes-demo/input_data/barcode02
+sample03,data/test/wf-transcriptomes-demo/input_data/barcode03
+sample04,data/test/wf-transcriptomes-demo/input_data/barcode04
+sample05,data/test/wf-transcriptomes-demo/input_data/barcode05
+sample06,data/test/wf-transcriptomes-demo/input_data/barcode06
