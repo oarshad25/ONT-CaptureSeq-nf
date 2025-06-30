@@ -99,7 +99,7 @@ workflow {
     // create a channel colecting all fastq files in the sample directory into a list
     // [meta, fastq_files]
 
-    fastq_extns = ['.fastq', '.fastq.gz']
+    fastq_extns = ['.fq', '.fq.gz', '.fastq', '.fastq.gz']
 
     input_ch
         .map { meta, fastqdir ->
