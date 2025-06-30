@@ -58,8 +58,6 @@ workflow {
             }
             .filter { meta, _fastqdir -> !meta.id.contains("unclassified") }
             .set { input_ch }
-
-        input_ch.view()
     }
     else {
         // otherwise samplesheet was provided
