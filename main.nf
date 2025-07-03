@@ -7,6 +7,7 @@ include { pipelineHeader } from "./lib/pipelineHeader"
 
 // include process modules
 include { CONCAT_FASTQ } from "./modules/concat_fastq"
+include { NANOPLOT } from "./modules/nanoplot"
 
 workflow {
 
@@ -126,4 +127,9 @@ workflow {
         .map { meta, fastq -> [meta, fastq, fastq.countFastq()] }
         .filter { _meta, _fastq, numreads -> numreads > params.min_reads_per_sample }
         .map { meta, fastq, _numreads -> tuple(meta, fastq) }
+
+    /*
+    * QC on raw reads
+    */
+    NANOPLOT(reads_ch, "raw", params.is_fastq_rich)
 }

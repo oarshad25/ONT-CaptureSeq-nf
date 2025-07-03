@@ -72,8 +72,16 @@ The required parameters are as follows
 
 ### Additional parameters
 
-| Parameter              | Type    | Description                                                                                                                                                                               | Default   |
-| ---------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| `outdir`               | string  | Output directory for results                                                                                                                                                              | `results` |
-| `min_reads_per_sample` | integer | Threshold for minimum number of reads per sample. Samples with number of reads below this threshold are filtered out. This is mainly to get rid of unassigned barcodes in input directory | 1000      |
+| Parameter              | Type    | Description                                                                                                                                                                               | Default |
+| ---------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `outdir`               | string  | Output directory for results                                                                                                                                                              | results |
+| `min_reads_per_sample` | integer | Threshold for minimum number of reads per sample. Samples with number of reads below this threshold are filtered out. This is mainly to get rid of unassigned barcodes in input directory | 1000    |
+
+### Tool Options
+
+Options for configuring tools used in workflow
+
+| Parameter       | Type    | Description                                                                                                                                                                      | Default |
+| --------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `is_fastq_rich` | boolean | Used by NanoPlot. Whether input is a rich fastq with additional information regarding ONT run (concerning channel and time). Used to set input data source argument for nanoplot | false   |
 
