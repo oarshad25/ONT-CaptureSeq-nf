@@ -4,6 +4,7 @@
 include { helpMessage } from "./lib/helpMessage"
 include { checkParams } from "./lib/checkParams"
 include { pipelineHeader } from "./lib/pipelineHeader"
+include { findFastqFiles } from "./lib/utilities.nf"
 
 // include process modules
 include { CONCAT_FASTQ } from "./modules/concat_fastq"
@@ -94,21 +95,21 @@ workflow {
     * CONCATENATE FQS PER SAMPLE
     */
 
-    // https://github.com/asadprodhan/How-to-channel-sequencing-reads-from-multiple-subdirectories-into-nextflow-pipeline
     // create a channel colecting all fastq files in the sample directory into a list
     // [meta, fastq_files]
 
-    fastq_extns = ['.fq', '.fq.gz', '.fastq', '.fastq.gz']
+    // The filter operator:
+    // Filter out any samples in input_ch for which no fastq files found,
+    // preventing channel with empty components being passed on
 
     input_ch
         .map { meta, fastqdir ->
-            // list all files in fastqdir
-            def all_files = file(fastqdir).listFiles()
-            // get files with extensions in fastq_extns
-            def fastq_files = all_files.findAll { fn -> fastq_extns.find { fn.name.endsWith(it) } }
+            // get fastq files in fastqdir
+            def fastq_files = findFastqFiles(fastqdir)
             //output a tuple of metadata map and list of fastq_files for sample
             tuple(meta, fastq_files)
         }
+        .filter { it -> it[1] }
         .set { fastq_files_ch }
 
     // concatenate fastq files per sample
