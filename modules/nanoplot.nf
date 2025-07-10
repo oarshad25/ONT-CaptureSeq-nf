@@ -56,7 +56,7 @@ process NANOPLOT {
     NanoPlot \\
         --threads ${task.cpus} \\
         --no_static \\
-        --prefix "${step}_${meta.id}_" \\
+        --prefix "${meta.id}_" \\
         ${input_type_opt} ${inputfile}
     """
 }

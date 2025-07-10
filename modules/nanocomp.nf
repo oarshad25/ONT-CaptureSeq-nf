@@ -47,7 +47,6 @@ process NANOCOMP {
     NanoComp \\
         --threads ${task.cpus} \\
         ${input_type_opt} ${inputfiles} \\
-        --names ${names} \\
-        --prefix "${step}_"
+        --names ${names}
     """
 }
