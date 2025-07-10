@@ -10,6 +10,7 @@ include { findFastqFiles } from "./lib/utilities.nf"
 include { CONCAT_FASTQ } from "./modules/concat_fastq"
 include { NANOPLOT } from "./modules/nanoplot"
 include { NANOCOMP } from "./modules/nanocomp"
+include { MULTIQC } from "./modules/multiqc"
 include { FILTER_READS } from "./modules/filter_reads"
 
 workflow {
@@ -145,6 +146,10 @@ workflow {
         .set { sorted_reads_ch }
 
     NANOCOMP(sorted_reads_ch.collect { it -> it[1] }, "raw")
+
+    def multiqc_input_ch = NANOPLOT.out.txt.collect { it -> it[1] }
+
+    MULTIQC(multiqc_input_ch, "raw")
 
     /*
     * Filter raw reads
