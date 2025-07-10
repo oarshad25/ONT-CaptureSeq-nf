@@ -10,6 +10,7 @@ include { findFastqFiles } from "./lib/utilities.nf"
 include { CONCAT_FASTQ } from "./modules/concat_fastq"
 include { NANOPLOT } from "./modules/nanoplot"
 include { NANOCOMP } from "./modules/nanocomp"
+include { FILTER_READS } from "./modules/filter_reads"
 
 workflow {
 
@@ -144,4 +145,18 @@ workflow {
         .set { sorted_reads_ch }
 
     NANOCOMP(sorted_reads_ch.collect { it -> it[1] }, "raw")
+
+    /*
+    * Filter raw reads
+    */
+
+    // filter raw reads on length and quality
+    FILTER_READS(reads_ch, params.min_length, params.min_qual)
+
+    // remove any samples that after filtering have less than 'min_reads_per_sample'
+    FILTER_READS.out.filtered_reads
+        .map { meta, fastq -> [meta, fastq, fastq.countFastq()] }
+        .filter { _meta, _fastq, numreads -> numreads > params.min_reads_per_sample }
+        .map { meta, fastq, _numreads -> tuple(meta, fastq) }
+        .set { filtered_reads_ch }
 }

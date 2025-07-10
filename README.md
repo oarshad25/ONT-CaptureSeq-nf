@@ -61,7 +61,7 @@ file and include at least two columns named `id` and `fastqdir`
 
 ### Pipeline parameters
 
-The required parameters are as follows
+The required parameters are as follows:
 
 | Parameter     | Type   | Description                                                                                                        | Default |
 | ------------- | ------ | ------------------------------------------------------------------------------------------------------------------ | ------- |
@@ -70,18 +70,23 @@ The required parameters are as follows
 | `genome`      | string | Path to reference genome FASTA to use for alignment.                                                               |
 | `annotation`  | string | Reference annotation as GTF.                                                                                       |
 
-### Additional parameters
+### Optional parameters
+
+| Parameter | Type   | Description                  | Default |
+| --------- | ------ | ---------------------------- | ------- |
+| `outdir`  | string | Output directory for results | results |
+
+
+### Additional Options
+
+Options for configuring steps/tools in the workflow
+
+#### QC and filtering
 
 | Parameter              | Type    | Description                                                                                                                                                                               | Default |
 | ---------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| `outdir`               | string  | Output directory for results                                                                                                                                                              | results |
 | `min_reads_per_sample` | integer | Threshold for minimum number of reads per sample. Samples with number of reads below this threshold are filtered out. This is mainly to get rid of unassigned barcodes in input directory | 1000    |
-
-### Tool Options
-
-Options for configuring tools used in workflow
-
-| Parameter       | Type    | Description                                                                                                                                                                      | Default |
-| --------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| `is_fastq_rich` | boolean | Used by NanoPlot. Whether input is a rich fastq with additional information regarding ONT run (concerning channel and time). Used to set input data source argument for nanoplot | false   |
+| `is_fastq_rich`        | boolean | Used in NanoPlot. Whether input is a rich fastq with additional information regarding ONT run (concerning channel and time). Used to set input data source argument for nanoplot          | false   |
+| `min_length`           | integer | Minimum read length threshold. Reads below this length are filtered out                                                                                                                   | 100     |
+| `min_qual`             | float   | Average read quality threshold. Reads below this threshold are filtered out                                                                                                               | 7       |
 
