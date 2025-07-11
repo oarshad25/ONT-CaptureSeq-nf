@@ -1,0 +1,14 @@
+{
+    "name": "trimmed",
+    "description": "A configuration for trimmed reads. Trimmed reads do not have primers, they only have PolyA/PolyT tails. Hence, the trimmed pipeline only performs PolyA/PolyT classification.",
+    "pipeline": [
+        {
+            "type": "poly",
+            "tail-length": 12,
+            "search-size": 200
+        }
+    ],
+    "silent": true,
+    "exclude-unknowns": true,
+    "error-rate": 0.25
+}

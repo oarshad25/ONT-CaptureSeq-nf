@@ -90,3 +90,10 @@ Options for configuring steps/tools in the workflow
 | `min_length`           | integer | Minimum read length threshold. Reads below this length are filtered out                                                                                                                   | 100     |
 | `min_qual`             | float   | Average read quality threshold. Reads below this threshold are filtered out                                                                                                               | 7       |
 
+#### Restrander (read orientation)
+
+| Parameter           | Type    | Description                                | Default                                |
+| ------------------- | ------- | ------------------------------------------ | -------------------------------------- |
+| `run_restrander`    | boolean | Reorient reads with restrander             | false                                  |
+| `restrander_config` | string  | Path to Restrander configuration json file | `assets/restrander_config/PCB109.json` |
+

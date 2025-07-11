@@ -33,6 +33,10 @@ def helpMessage() {
                                             specifying whether input fastq files are in 'rich' format.
         --min_length <integer>              Minimum read length threshold to filter reads
         --min_qual <float>                  Minimum read average quality threshold to filter reads
+
+        Restrander:
+        --run_restrander <Boolean>          Run restrander
+        --restrander_config <path>          Path to restrander config json
         """.stripIndent()
     )
 }

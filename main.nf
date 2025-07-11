@@ -9,9 +9,10 @@ include { findFastqFiles } from "./lib/utilities.nf"
 // include process modules
 include { CONCAT_FASTQ } from "./modules/concat_fastq"
 include { FILTER_READS } from "./modules/filter_reads"
+include { RESTRANDER } from "./modules/restrander"
 
 // include subworkflows
-include { READ_QC as RAW_READ_QC ; READ_QC as FILTERED_READ_QC } from "./subworkflows/read_qc"
+include { READ_QC as RAW_READ_QC ; READ_QC as FILTERED_READ_QC ; READ_QC as RESTRANDED_READ_QC } from "./subworkflows/read_qc"
 
 workflow {
 
@@ -154,4 +155,24 @@ workflow {
 
     // QC stats on filtered reads
     FILTERED_READ_QC(filtered_reads_ch, "filtered", params.is_fastq_rich)
+
+    /*
+    * Restrand filtered reads
+    */
+
+    // initialise restranded reads
+    full_length_reads_ch = filtered_reads_ch
+
+    if (params.run_restrander) {
+
+        // channel containing path to restrander config file
+        restrander_config_ch = file(params.restrander_config, checkIfExists: true)
+
+        // reorient reads with restrander
+        RESTRANDER(filtered_reads_ch, restrander_config_ch)
+        full_length_reads_ch = RESTRANDER.out.full_length_reads
+
+        // QC on restranded reads
+        RESTRANDED_READ_QC(full_length_reads_ch, "full_length", params.is_fastq_rich)
+    }
 }

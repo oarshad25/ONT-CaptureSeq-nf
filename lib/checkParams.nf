@@ -57,4 +57,10 @@ def checkParams() {
     if (params.inputdir && file(params.inputdir).listFiles().size() == 0) {
         error("Input directory: `${params.inputdir}` is empty")
     }
+
+    //if restrander is to be run, check config exists
+
+    if (params.run_restrander && !file(params.restrander_config).exists()) {
+        error("Specified restrander config: `${params.restrander}` does not exist.")
+    }
 }
