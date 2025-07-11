@@ -150,12 +150,7 @@ workflow {
     if (!params.skip.read_filtering) {
         FILTER_READS(reads_ch, params.min_length, params.min_qual)
 
-        // remove any samples that after filtering have less than 'min_reads_per_sample'
-        FILTER_READS.out.filtered_reads
-            .map { meta, fastq -> [meta, fastq, fastq.countFastq()] }
-            .filter { _meta, _fastq, numreads -> numreads > params.min_reads_per_sample }
-            .map { meta, fastq, _numreads -> tuple(meta, fastq) }
-            .set { filtered_reads_ch }
+        filtered_reads_ch = FILTER_READS.out.filtered_reads
 
         // QC stats on filtered reads
         FILTERED_READ_QC(filtered_reads_ch, "filtered", params.is_fastq_rich)
@@ -175,9 +170,17 @@ workflow {
 
         // reorient reads with restrander
         RESTRANDER(filtered_reads_ch, restrander_config_ch)
+
         full_length_reads_ch = RESTRANDER.out.full_length_reads
 
         // QC on restranded reads
         RESTRANDED_READ_QC(full_length_reads_ch, "full_length", params.is_fastq_rich)
     }
+
+    // remove any samples that after preprocessing have less than 'min_reads_per_sample'
+    full_length_reads_ch
+        .map { meta, fastq -> [meta, fastq, fastq.countFastq()] }
+        .filter { _meta, _fastq, numreads -> numreads > params.min_reads_per_sample }
+        .map { meta, fastq, _numreads -> tuple(meta, fastq) }
+        .set { processed_reads_ch }
 }
