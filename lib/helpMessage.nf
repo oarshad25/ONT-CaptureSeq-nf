@@ -31,6 +31,7 @@ def helpMessage() {
         --min_reads_per_sample <int>        Threshold to filter samples
         --is_fastq_rich <Boolean>           Parameter to set input data type argument for nanoplot
                                             specifying whether input fastq files are in 'rich' format.
+        --skip.read_filtering <Boolean>     Skip filtering of reads on length and average quality
         --min_length <integer>              Minimum read length threshold to filter reads
         --min_qual <float>                  Minimum read average quality threshold to filter reads
 

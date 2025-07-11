@@ -143,18 +143,23 @@ workflow {
     * Filter raw reads
     */
 
+    // initialise to upstream channel
+    filtered_reads_ch = reads_ch
+
     // filter raw reads on length and quality
-    FILTER_READS(reads_ch, params.min_length, params.min_qual)
+    if (!params.skip.read_filtering) {
+        FILTER_READS(reads_ch, params.min_length, params.min_qual)
 
-    // remove any samples that after filtering have less than 'min_reads_per_sample'
-    FILTER_READS.out.filtered_reads
-        .map { meta, fastq -> [meta, fastq, fastq.countFastq()] }
-        .filter { _meta, _fastq, numreads -> numreads > params.min_reads_per_sample }
-        .map { meta, fastq, _numreads -> tuple(meta, fastq) }
-        .set { filtered_reads_ch }
+        // remove any samples that after filtering have less than 'min_reads_per_sample'
+        FILTER_READS.out.filtered_reads
+            .map { meta, fastq -> [meta, fastq, fastq.countFastq()] }
+            .filter { _meta, _fastq, numreads -> numreads > params.min_reads_per_sample }
+            .map { meta, fastq, _numreads -> tuple(meta, fastq) }
+            .set { filtered_reads_ch }
 
-    // QC stats on filtered reads
-    FILTERED_READ_QC(filtered_reads_ch, "filtered", params.is_fastq_rich)
+        // QC stats on filtered reads
+        FILTERED_READ_QC(filtered_reads_ch, "filtered", params.is_fastq_rich)
+    }
 
     /*
     * Restrand filtered reads
