@@ -12,6 +12,7 @@ include { FILTER_READS } from "./modules/filter_reads"
 include { RESTRANDER } from "./modules/restrander"
 
 // include subworkflows
+include { PREPARE_REFERENCE_FILES } from "./subworkflows/prepare_reference_files"
 include { READ_QC as RAW_READ_QC ; READ_QC as FILTERED_READ_QC ; READ_QC as RESTRANDED_READ_QC } from "./subworkflows/read_qc"
 
 workflow {
@@ -89,11 +90,23 @@ workflow {
             .set { input_ch }
     }
 
+    /*
+    * Setup reference channels
+    */
+
+    // replace reference channel creation below with subworkflow PREPARE_REFERENCE_FILES
     // create reference genome fasta channel
-    genome_ch = file(params.genome, checkIfExists: true)
+    //genome_ch = file(params.genome, checkIfExists: true)
 
     // create reference genome fasta channel
-    annotation_ch = file(params.annotation, checkIfExists: true)
+    //annotation_ch = file(params.annotation, checkIfExists: true)
+
+    PREPARE_REFERENCE_FILES(params.genome, params.annotation)
+
+    // reference genome fasta channel
+    genome_ch = PREPARE_REFERENCE_FILES.out.genome_ch
+    // reference annotation channel
+    annotation_ch = PREPARE_REFERENCE_FILES.out.annotation_ch
 
     /*
     * CONCATENATE FQS PER SAMPLE
