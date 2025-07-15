@@ -98,3 +98,9 @@ Options for configuring steps/tools in the workflow
 | `run_restrander`    | boolean | Reorient reads with restrander             | false                                  |
 | `restrander_config` | string  | Path to Restrander configuration json file | `assets/restrander_config/PCB109.json` |
 
+#### Alignment (MiniMap2)
+
+| Parameter           | Type   | Description                                                                                                                  | Default                                      |
+| ------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `minimap2_opts`     | string | Additional command-line options for Minimap2 alignment. See [minimap2 options](https://lh3.github.io/minimap2/minimap2.html) | `"-ax splice -G 500k -k 14 --secondary=yes"` |
+| `minimap2_junc_bed` | string | Path to junction BED annotation for Minimap2                                                                                 |                                              |

@@ -11,6 +11,8 @@ include { CONCAT_FASTQ } from "./modules/concat_fastq"
 include { FILTER_READS } from "./modules/filter_reads"
 include { RESTRANDER } from "./modules/restrander"
 
+include { MINIMAP2 } from "./modules/minimap2"
+
 // include subworkflows
 include { PREPARE_REFERENCE_FILES } from "./subworkflows/prepare_reference_files"
 include { READ_QC as RAW_READ_QC ; READ_QC as FILTERED_READ_QC ; READ_QC as RESTRANDED_READ_QC } from "./subworkflows/read_qc"
@@ -196,4 +198,13 @@ workflow {
         .filter { _meta, _fastq, numreads -> numreads > params.min_reads_per_sample }
         .map { meta, fastq, _numreads -> tuple(meta, fastq) }
         .set { processed_reads_ch }
+
+    /*
+    * ALIGNMENT
+    */
+
+    // TODO: Replace junc bed with bed12 annotation and add option to use it
+    minimap2_junc_bed_ch = file(params.minimap2_junc_bed, checkIfExists: true)
+
+    MINIMAP2(processed_reads_ch, genome_ch, params.minimap2_opts, minimap2_junc_bed_ch)
 }
