@@ -48,21 +48,22 @@ output:
 */
 
 process CONCAT_FASTQ {
-    tag { meta.id }
+  tag { meta.id }
+  label "single"
 
-    publishDir "${params.outdir}/merged_reads", mode: 'link'
+  publishDir "${params.outdir}/merged_reads", mode: 'link'
 
-    input:
-    // Reads to merge
-    // [meta, [ read1, read2 ] ]
-    tuple val(meta), path(fastq_files)
+  input:
+  // Reads to merge
+  // [meta, [ read1, read2 ] ]
+  tuple val(meta), path(fastq_files)
 
-    output:
-    // merged fastq file
-    tuple val(meta), path("${meta.id}.fastq"), emit: merged_reads
+  output:
+  // merged fastq file
+  tuple val(meta), path("${meta.id}.fastq"), emit: merged_reads
 
-    script:
-    """
-    zcat -f ${fastq_files} > "${meta.id}.fastq"
-    """
+  script:
+  """
+  zcat -f ${fastq_files} > "${meta.id}.fastq"
+  """
 }
