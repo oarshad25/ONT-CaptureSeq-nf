@@ -206,5 +206,16 @@ workflow {
     // TODO: Replace junc bed with bed12 annotation and add option to use it
     minimap2_junc_bed_ch = file(params.minimap2_junc_bed, checkIfExists: true)
 
-    MINIMAP2(processed_reads_ch, genome_ch, params.minimap2_opts, minimap2_junc_bed_ch)
+    MINIMAP2(
+        processed_reads_ch,
+        genome_ch,
+        minimap2_junc_bed_ch,
+        params.minimap2_x,
+        params.minimap2_k,
+        params.minimap2_u,
+        params.minimap2_G,
+        params.minimap2_I,
+        params.minimap2_cs,
+        params.minimap2_extra_opts,
+    )
 }

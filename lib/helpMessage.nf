@@ -38,6 +38,16 @@ def helpMessage() {
         Restrander:
         --run_restrander <Boolean>          Run restrander
         --restrander_config <path>          Path to restrander config json
+
+        Minimap2:
+        --minimap2_junc_bed <path>          Path to optional junction bed file (used by --junc-bed)
+        --minimap2_x <string>               Preset (-x) option e.g. "splice"
+        --minimap2_k <integer>              Kmer size (-k) option e.g. 14
+        --minimap2_u <character>            Strand (-u) option e.g. "f"
+        --minimap2_G <string>               Max intron length (-G) option e.g. "500k"
+        --minimap2_I <string>               Indexing batch size (-I) option e.g. "8G"
+        --minimap2_cs <string>              (-cs) option ("short" or "long") e.g. "long"
+        --minimap2_extra_opts <string>      Any additional options to pass to Minimap e.g. "--splice-flank=no"
         """.stripIndent()
     )
 }
