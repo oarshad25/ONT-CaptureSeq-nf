@@ -50,8 +50,13 @@ output:
 process CONCAT_FASTQ {
   tag { meta.id }
   label "single"
+  label "local_software"
 
   publishDir "${params.outdir}/merged_reads", mode: 'link'
+
+  container "${workflow.containerEngine == 'apptainer'
+    ? 'https://depot.galaxyproject.org/singularity/ubuntu:24.04'
+    : 'quay.io/biocontainers/ubuntu:24.04'}"
 
   input:
   // Reads to merge

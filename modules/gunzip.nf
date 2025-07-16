@@ -3,6 +3,7 @@
 
 process GUNZIP {
     label "low"
+    label "local_software"
 
     container "${workflow.containerEngine == 'apptainer'
         ? 'https://depot.galaxyproject.org/singularity/ubuntu:24.04'
