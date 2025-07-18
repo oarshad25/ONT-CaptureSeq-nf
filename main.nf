@@ -13,6 +13,7 @@ include { RESTRANDER } from "./modules/restrander"
 
 include { MINIMAP2 } from "./modules/minimap2"
 include { SAMTOOLS } from "./modules/samtools"
+include { MULTIQC } from "./modules/multiqc.nf"
 
 // include subworkflows
 include { PREPARE_REFERENCE_FILES } from "./subworkflows/prepare_reference_files"
@@ -221,6 +222,8 @@ workflow {
     )
 
     SAMTOOLS(MINIMAP2.out.sam)
+
+    MULTIQC(SAMTOOLS.out.flagstat.collect { it -> it[1] }, "aligned")
 
     if (params.workflow_event_handlers) {
         // Print workflow execution summary
