@@ -219,35 +219,33 @@ workflow {
         params.minimap2_extra_opts,
     )
 
-    // Print workflow execution summary
-    workflow.onComplete = {
-        println("")
-        println("=======================================================================================")
-        println("Workflow execution summary")
-        println("=======================================================================================")
-
-        if (workflow.success) {
-            println("Command line   : ${workflow.commandLine}")
-            println("Completed at   : ${workflow.complete}")
-            println("Duration       : ${workflow.duration}")
-            println("Work directory : ${workflow.workDir}")
-            println("Exit status    : ${workflow.exitStatus}")
+    if (params.workflow_event_handlers) {
+        // Print workflow execution summary
+        workflow.onComplete = {
             println("")
-            println("Parameters")
-            println("==========")
-            params.each { k, v ->
-                if (v) {
+            println("=======================================================================================")
+            println("Workflow execution summary")
+            println("=======================================================================================")
+
+            if (workflow.success) {
+                println("Command line   : ${workflow.commandLine}")
+                println("Completed at   : ${workflow.complete}")
+                println("Duration       : ${workflow.duration}")
+                println("Work directory : ${workflow.workDir}")
+                println("\n")
+                println("Parameters")
+                println("==========")
+                params.each { k, v ->
                     println("${k}: ${v}")
                 }
             }
+            else {
+                println("Exit status    : ${workflow.exitStatus}")
+            }
         }
-        else {
-            println("Failed         : ${workflow.errorReport}")
-            println("Exit status    : ${workflow.exitStatus}")
-        }
-    }
 
-    workflow.onError = {
-        println("Pipeline execution stopped with the following message: ${workflow.errorMessage}")
+        workflow.onError = {
+            println("Pipeline execution stopped with the following message: ${workflow.errorMessage}")
+        }
     }
 }
