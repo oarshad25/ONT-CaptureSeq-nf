@@ -12,6 +12,7 @@ include { FILTER_READS } from "./modules/filter_reads"
 include { RESTRANDER } from "./modules/restrander"
 
 include { MINIMAP2 } from "./modules/minimap2"
+include { SAMTOOLS } from "./modules/samtools"
 
 // include subworkflows
 include { PREPARE_REFERENCE_FILES } from "./subworkflows/prepare_reference_files"
@@ -218,6 +219,8 @@ workflow {
         params.minimap2_cs,
         params.minimap2_extra_opts,
     )
+
+    SAMTOOLS(MINIMAP2.out.sam)
 
     if (params.workflow_event_handlers) {
         // Print workflow execution summary
