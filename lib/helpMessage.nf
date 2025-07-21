@@ -48,6 +48,9 @@ def helpMessage() {
         --minimap2_I <string>               Indexing batch size (-I) option e.g. "8G"
         --minimap2_cs <string>              (-cs) option ("short" or "long") e.g. "long"
         --minimap2_extra_opts <string>      Any additional options to pass to Minimap e.g. "--splice-flank=no"
+
+        RSeQC:
+        --skip_rseqc <Boolean>              Skip read distribution calculation with RSeQC
         """.stripIndent()
     )
 }

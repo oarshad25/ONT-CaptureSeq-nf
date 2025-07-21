@@ -18,6 +18,7 @@ include { MULTIQC } from "./modules/multiqc.nf"
 // include subworkflows
 include { PREPARE_REFERENCE_FILES } from "./subworkflows/prepare_reference_files"
 include { READ_QC as RAW_READ_QC ; READ_QC as FILTERED_READ_QC ; READ_QC as RESTRANDED_READ_QC } from "./subworkflows/read_qc"
+include { RSEQC } from "./subworkflows/rseqc"
 
 workflow {
 
@@ -208,6 +209,7 @@ workflow {
     // TODO: Replace junc bed with bed12 annotation and add option to use it
     minimap2_junc_bed_ch = file(params.minimap2_junc_bed, checkIfExists: true)
 
+    // align reads to genome with MiniMap
     MINIMAP2(
         processed_reads_ch,
         genome_ch,
@@ -221,9 +223,42 @@ workflow {
         params.minimap2_extra_opts,
     )
 
+    /*
+    Use samtools to:
+     * convert aligned reads from SAM to BAM
+     * sort and index BAM
+     * generate alignment statistics
+    */
+
     SAMTOOLS(MINIMAP2.out.sam)
 
-    MULTIQC(SAMTOOLS.out.flagstat.collect { it -> it[1] }, "aligned")
+    /*
+    * Aligned reads QC
+    */
+
+    // alignment statistics input channel for MultiQC
+    multiqc_flagstat_ch = SAMTOOLS.out.flagstat.collect { it -> it[1] }
+
+    // initialise empty channel to contain input files for MultiQC
+    multiqc_rseqc_ch = Channel.empty()
+
+    // calculate read distribution of aligned reads with RSeQC if parameter 'skip_resqc' is set
+    if (!params.skip_rseqc) {
+        // run RSeQC subworkflow
+        RSEQC(SAMTOOLS.out.bambai, annotation_ch)
+        // channel with text files containing read distribution calculations
+        multiqc_rseqc_ch = RSEQC.out.txt.collect { it -> it[1] }.ifEmpty([])
+    }
+
+    // combine samtools flagstat and RSeQC read distribution files
+    multiqc_alignment_input_files_ch = multiqc_flagstat_ch.mix(multiqc_rseqc_ch).collect()
+
+    // run MultiQC on aligned read statistics
+    MULTIQC(multiqc_alignment_input_files_ch, "aligned")
+
+    /*
+    * Workflow event handlers
+    */
 
     if (params.workflow_event_handlers) {
         // Print workflow execution summary
