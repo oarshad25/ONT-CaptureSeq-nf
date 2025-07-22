@@ -212,6 +212,8 @@ workflow {
         processed_reads_ch,
         genome_ch,
         annotation_ch,
+        params.skip_save_minimap2_index,
+        params.minimap2_indexing_extra_opts,
         minimap2_junc_bed_ch,
         params.minimap2_x,
         params.minimap2_k,

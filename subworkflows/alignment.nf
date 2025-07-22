@@ -9,6 +9,7 @@ Alignment subworkflow
 * Optionally calculate read distribution statistics with RSeQC
 */
 
+include { MINIMAP2_INDEX } from "../modules/minimap2_index.nf"
 include { MINIMAP2 } from "../modules/minimap2"
 include { SAMTOOLS } from "../modules/samtools"
 
@@ -19,8 +20,10 @@ workflow ALIGNMENT {
     reads // [ val(meta), path(fasta) ]
     genome // path to genome fasta
     annotation // path to annotation gtf
+    skip_save_minimap2_index // Boolean, skip saving the minimap2 index. This flag controls whether to run indexing seperately
+    minimap2_indexing_extra_opts // string, any additional options to pass to indexing process
     minimap2_junc_bed // path to optional junction bed file for MiniMap2
-    minimap2_x
+    minimap2_x // params.minimap2_x
     minimap2_k
     minimap2_u
     minimap2_G
@@ -31,10 +34,29 @@ workflow ALIGNMENT {
 
     main:
 
+    /*
+    * Index the genome (if flag to prebuild index is set)
+    */
+
+    // index the genome
+    if (!skip_save_minimap2_index) {
+        MINIMAP2_INDEX(
+            genome,
+            minimap2_x,
+            minimap2_k,
+            minimap2_I,
+            minimap2_indexing_extra_opts,
+        )
+        ch_minimap2_ref = MINIMAP2_INDEX.out.index
+    }
+    else {
+        ch_minimap2_ref = genome
+    }
+
     // align reads to genome with MiniMap
     MINIMAP2(
         reads,
-        genome,
+        ch_minimap2_ref,
         minimap2_junc_bed,
         minimap2_x,
         minimap2_k,
@@ -58,7 +80,7 @@ workflow ALIGNMENT {
     * Aligned reads QC
     */
 
-    //initialise empty channel to contain rseqc read distribution output files
+    //initialise empty channel to contain rseqc read distribution output
     rseqc_read_dist_ch = Channel.empty()
 
     // calculate read distribution of aligned reads with RSeQC if parameter 'skip_resqc' is set
@@ -72,5 +94,5 @@ workflow ALIGNMENT {
     emit:
     bambai = SAMTOOLS.out.bambai // sorted and indexed reads: [val(meta), path(bam), path(bai)]
     flagstat = SAMTOOLS.out.flagstat // alignment flagstats [val(meta), path(flagstat_file)]
-    rseqc_read_dist = rseqc_read_dist_ch // RSeQC read distribution calculations [val(meta), path(read_dist_file)] or Channel.empty()
+    rseqc_read_dist = rseqc_read_dist_ch // RSeQC read distribution calculations [val(meta), path(read_dist_file)] or Channel.empty(), if skip_rseqc
 }
