@@ -11,14 +11,12 @@ include { CONCAT_FASTQ } from "./modules/concat_fastq"
 include { FILTER_READS } from "./modules/filter_reads"
 include { RESTRANDER } from "./modules/restrander"
 
-include { MINIMAP2 } from "./modules/minimap2"
-include { SAMTOOLS } from "./modules/samtools"
 include { MULTIQC } from "./modules/multiqc.nf"
 
 // include subworkflows
 include { PREPARE_REFERENCE_FILES } from "./subworkflows/prepare_reference_files"
 include { READ_QC as RAW_READ_QC ; READ_QC as FILTERED_READ_QC ; READ_QC as RESTRANDED_READ_QC } from "./subworkflows/read_qc"
-include { RSEQC } from "./subworkflows/rseqc"
+include { ALIGNMENT } from "./subworkflows/alignment"
 
 workflow {
 
@@ -209,10 +207,11 @@ workflow {
     // TODO: Replace junc bed with bed12 annotation and add option to use it
     minimap2_junc_bed_ch = file(params.minimap2_junc_bed, checkIfExists: true)
 
-    // align reads to genome with MiniMap
-    MINIMAP2(
+    // align reads to genome with MiniMap and generate read QC statistics
+    ALIGNMENT(
         processed_reads_ch,
         genome_ch,
+        annotation_ch,
         minimap2_junc_bed_ch,
         params.minimap2_x,
         params.minimap2_k,
@@ -221,34 +220,21 @@ workflow {
         params.minimap2_I,
         params.minimap2_cs,
         params.minimap2_extra_opts,
+        params.skip_rseqc,
     )
 
-    /*
-    Use samtools to:
-     * convert aligned reads from SAM to BAM
-     * sort and index BAM
-     * generate alignment statistics
-    */
-
-    SAMTOOLS(MINIMAP2.out.sam)
+    // aligned reads, sorted and indexed bam: [val(meta), path(bam), path(bai)]
+    aligned_reads_ch = ALIGNMENT.out.bambai
 
     /*
-    * Aligned reads QC
+    * Alignment MultiQC report
     */
 
     // alignment statistics input channel for MultiQC
-    multiqc_flagstat_ch = SAMTOOLS.out.flagstat.collect { it -> it[1] }
+    multiqc_flagstat_ch = ALIGNMENT.out.flagstat.collect { it -> it[1] }
 
-    // initialise empty channel to contain input files for MultiQC
-    multiqc_rseqc_ch = Channel.empty()
-
-    // calculate read distribution of aligned reads with RSeQC if parameter 'skip_resqc' is set
-    if (!params.skip_rseqc) {
-        // run RSeQC subworkflow
-        RSEQC(SAMTOOLS.out.bambai, annotation_ch)
-        // channel with text files containing read distribution calculations
-        multiqc_rseqc_ch = RSEQC.out.txt.collect { it -> it[1] }.ifEmpty([])
-    }
+    // channel with text files containing read distribution calculations
+    multiqc_rseqc_ch = ALIGNMENT.out.rseqc_read_dist.collect { it -> it[1] }.ifEmpty([])
 
     // combine samtools flagstat and RSeQC read distribution files
     multiqc_alignment_input_files_ch = multiqc_flagstat_ch.mix(multiqc_rseqc_ch).collect()
