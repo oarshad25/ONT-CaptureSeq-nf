@@ -223,6 +223,7 @@ workflow {
         params.minimap2_cs,
         params.minimap2_extra_opts,
         params.skip_rseqc,
+        params.filter_bam_mapped,
     )
 
     // aligned reads, sorted and indexed bam: [val(meta), path(bam), path(bai)]

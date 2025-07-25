@@ -53,6 +53,9 @@ def helpMessage() {
 
         RSeQC:
         --skip_rseqc <Boolean>                      Skip read distribution calculation with RSeQC
+
+        Alignment additional:
+        --filter_bam_mapped <Boolean>               Whether to filter alignment BAM to mapped reads only
         """.stripIndent()
     )
 }

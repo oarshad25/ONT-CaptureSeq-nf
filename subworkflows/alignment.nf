@@ -7,11 +7,13 @@ Alignment subworkflow
 * Convert alignment ouitput to sam to sorted BAM with samtools and index
   and generate alignment statistics with flagstat
 * Optionally calculate read distribution statistics with RSeQC
+* Optionally filter alignments to mapped reads only
 */
 
 include { MINIMAP2_INDEX } from "../modules/minimap2_index.nf"
 include { MINIMAP2 } from "../modules/minimap2"
 include { SAMTOOLS } from "../modules/samtools"
+include { FILTER_BAM_MAPPED } from "../modules/filter_bam_mapped"
 
 include { RSEQC } from "./rseqc"
 
@@ -31,6 +33,7 @@ workflow ALIGNMENT {
     minimap2_cs
     minimap2_extra_opts
     skip_rseqc // Boolean, whether to skip RSeQC read distribution calculations
+    filter_bam_mapped // Boolean, whether to get mapped reads only from aligned BAM
 
     main:
 
@@ -53,7 +56,10 @@ workflow ALIGNMENT {
         ch_minimap2_ref = genome
     }
 
-    // align reads to genome with MiniMap
+    /*
+    * Align reads to the genome with MiniMap2
+    */
+
     MINIMAP2(
         reads,
         ch_minimap2_ref,
@@ -80,6 +86,8 @@ workflow ALIGNMENT {
     * Aligned reads QC
     */
 
+    // Alignment QC statistics are computed on unfiltered BAMs
+
     //initialise empty channel to contain rseqc read distribution output
     rseqc_read_dist_ch = Channel.empty()
 
@@ -91,8 +99,20 @@ workflow ALIGNMENT {
         rseqc_read_dist_ch = RSEQC.out.txt
     }
 
+    /*
+    * Optionally filter out unmapped reads
+    */
+
+    if (filter_bam_mapped) {
+        FILTER_BAM_MAPPED(SAMTOOLS.out.bambai)
+        bambai_ch = FILTER_BAM_MAPPED.out.filtered_bambai
+    }
+    else {
+        bambai_ch = SAMTOOLS.out.bambai
+    }
+
     emit:
-    bambai = SAMTOOLS.out.bambai // sorted and indexed reads: [val(meta), path(bam), path(bai)]
+    bambai = bambai_ch // sorted and indexed reads (optionally filtered to mapped only): [val(meta), path(bam), path(bai)]
     flagstat = SAMTOOLS.out.flagstat // alignment flagstats [val(meta), path(flagstat_file)]
     rseqc_read_dist = rseqc_read_dist_ch // RSeQC read distribution calculations [val(meta), path(read_dist_file)] or Channel.empty(), if skip_rseqc
 }

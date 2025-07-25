@@ -98,7 +98,9 @@ Options for configuring steps/tools in the workflow
 | `run_restrander`    | boolean | Reorient reads with restrander             | false                                  |
 | `restrander_config` | string  | Path to Restrander configuration json file | `assets/restrander_config/PCB109.json` |
 
-#### Alignment (MiniMap2)
+#### Alignment
+
+##### MiniMap2
 
 Command-line options for Minimap2 alignment. See [minimap2 options](https://lh3.github.io/minimap2/minimap2.html)
 
@@ -115,8 +117,14 @@ Command-line options for Minimap2 alignment. See [minimap2 options](https://lh3.
 | `minimap2_cs`                  | string    | Output cs tag, Minimap2 `--cs` option e.g. `"long"`                                   | Minimap2 default (none)     |
 | `minimap2_extra_opts`          | string    | Any extra options to be provided to Minimap2 e.g. `"--splice-flank=no"` for SIRV data |                             |
 
-#### RSeQC
+##### RSeQC
 
 | Parameter    | Type    | Description                                                    | Default |
 | ------------ | ------- | -------------------------------------------------------------- | ------- |
 | `skip_rseqc` | boolean | skip read distribution calculation of aligned reads with RSeQC | false   |
+
+##### Additional
+
+| Parameter           | Type    | Description                                                                                                  | Default |
+| ------------------- | ------- | ------------------------------------------------------------------------------------------------------------ | ------- |
+| `filter_bam_mapped` | boolean | Whether to filter aligned bam to mapped reads only i.e. whether to filter out unmapped reads from alignments | true    |

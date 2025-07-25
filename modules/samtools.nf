@@ -7,7 +7,7 @@ process SAMTOOLS {
     tag "${meta.id}"
     label 'low'
 
-    publishDir "${params.outdir}/bam/", mode: "link"
+    publishDir "${params.outdir}/bam/unfiltered/", mode: "link"
 
     conda "bioconda samtools=1.21"
     container "${workflow.containerEngine == 'apptainer'
