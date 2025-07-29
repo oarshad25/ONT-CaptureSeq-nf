@@ -14,7 +14,7 @@ Alignment subworkflow
 include { MINIMAP2_INDEX } from "../modules/minimap2_index.nf"
 include { MINIMAP2 } from "../modules/minimap2"
 include { SAMTOOLS } from "../modules/samtools"
-include { SEQKIT_BAM } from "../modules/seqkit_bam"
+include { CRAMINO } from "../modules/cramino"
 include { FILTER_BAM_MAPPED } from "../modules/filter_bam_mapped"
 
 include { RSEQC } from "./rseqc"
@@ -85,12 +85,12 @@ workflow ALIGNMENT {
     SAMTOOLS(MINIMAP2.out.sam)
 
     /*
-    * Use seqkit bam to generate bam statistics
+    * Use cramino for quality assessment of BAM files
     */
 
     // Alignment QC statistics are computed on unfiltered BAMs
 
-    SEQKIT_BAM(SAMTOOLS.out.bambai)
+    CRAMINO(SAMTOOLS.out.bambai)
 
     /*
     * Use RSeQC to generate read distribution
@@ -122,6 +122,6 @@ workflow ALIGNMENT {
     emit:
     bambai = bambai_ch // sorted and indexed reads (optionally filtered to mapped only): [val(meta), path(bam), path(bai)]
     flagstat = SAMTOOLS.out.flagstat // alignment flagstats [val(meta), path(flagstat_file)]
-    seqkit_bam_stats = SEQKIT_BAM.out.seqkit_bam_stats // seqkit bam stats [val(meta), path(stat_file)]
+    cramino_stats = CRAMINO.out.stats_txt // cramino bam stats [val(meta), path(cramino_stat_file)]
     rseqc_read_dist = rseqc_read_dist_ch // RSeQC read distribution calculations [val(meta), path(read_dist_file)] or Channel.empty(), if skip_rseqc
 }
