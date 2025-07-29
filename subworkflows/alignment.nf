@@ -6,6 +6,7 @@ Alignment subworkflow
 * Align input reads to input genome.
 * Convert alignment ouitput to sam to sorted BAM with samtools and index
   and generate alignment statistics with flagstat
+* Generate aligned reads length and quality histograms with seqkit bam
 * Optionally calculate read distribution statistics with RSeQC
 * Optionally filter alignments to mapped reads only
 */
@@ -13,6 +14,7 @@ Alignment subworkflow
 include { MINIMAP2_INDEX } from "../modules/minimap2_index.nf"
 include { MINIMAP2 } from "../modules/minimap2"
 include { SAMTOOLS } from "../modules/samtools"
+include { SEQKIT_BAM } from "../modules/seqkit_bam"
 include { FILTER_BAM_MAPPED } from "../modules/filter_bam_mapped"
 
 include { RSEQC } from "./rseqc"
@@ -83,10 +85,16 @@ workflow ALIGNMENT {
     SAMTOOLS(MINIMAP2.out.sam)
 
     /*
-    * Aligned reads QC
+    * Use seqkit bam to generate bam statistics
     */
 
     // Alignment QC statistics are computed on unfiltered BAMs
+
+    SEQKIT_BAM(SAMTOOLS.out.bambai)
+
+    /*
+    * Use RSeQC to generate read distribution
+    */
 
     //initialise empty channel to contain rseqc read distribution output
     rseqc_read_dist_ch = Channel.empty()
@@ -114,5 +122,6 @@ workflow ALIGNMENT {
     emit:
     bambai = bambai_ch // sorted and indexed reads (optionally filtered to mapped only): [val(meta), path(bam), path(bai)]
     flagstat = SAMTOOLS.out.flagstat // alignment flagstats [val(meta), path(flagstat_file)]
+    seqkit_bam_stats = SEQKIT_BAM.out.seqkit_bam_stats // seqkit bam stats [val(meta), path(stat_file)]
     rseqc_read_dist = rseqc_read_dist_ch // RSeQC read distribution calculations [val(meta), path(read_dist_file)] or Channel.empty(), if skip_rseqc
 }
