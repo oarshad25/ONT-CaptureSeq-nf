@@ -163,7 +163,7 @@ workflow {
     filtered_reads_ch = reads_ch
 
     // filter raw reads on length and quality
-    if (!params.skip.read_filtering) {
+    if (!params.skip_read_filtering) {
         FILTER_READS(reads_ch, params.min_length, params.min_qual)
 
         filtered_reads_ch = FILTER_READS.out.filtered_reads
