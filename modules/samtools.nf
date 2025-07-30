@@ -20,7 +20,7 @@ process SAMTOOLS {
 
     output:
     // sorted and indexed bam
-    tuple val(meta), path("${meta.id}.bam"), path("${meta.id}.bai"), emit: bambai
+    tuple val(meta), path("${meta.id}.bam"), path("${meta.id}.bam.bai"), emit: bambai
 
     // flagstats
     tuple val(meta), path("${meta.id}.flagstat.txt"), emit: flagstat
@@ -32,7 +32,7 @@ process SAMTOOLS {
     samtools sort -@ ${task.cpus} -O bam -o ${meta.id}.bam -
 
     # index BAM
-    samtools index ${meta.id}.bam ${meta.id}.bai
+    samtools index ${meta.id}.bam
 
     # post-mapping QC
     samtools flagstat ${meta.id}.bam > ${meta.id}.flagstat.txt
