@@ -48,27 +48,27 @@ output:
 */
 
 process CONCAT_FASTQ {
-  tag { meta.id }
-  label "single"
-  label "local_software"
+    tag { meta.id }
+    label "single"
+    label "local_software"
 
-  publishDir "${params.outdir}/merged_reads", mode: 'link'
+    //publishDir "${params.outdir}/merged_reads", mode: 'link'
 
-  container "${workflow.containerEngine == 'apptainer'
-    ? 'https://depot.galaxyproject.org/singularity/ubuntu:24.04'
-    : 'quay.io/biocontainers/ubuntu:24.04'}"
+    container "${workflow.containerEngine == 'apptainer'
+        ? 'https://depot.galaxyproject.org/singularity/ubuntu:24.04'
+        : 'quay.io/biocontainers/ubuntu:24.04'}"
 
-  input:
-  // Reads to merge
-  // [meta, [ read1, read2 ] ]
-  tuple val(meta), path(fastq_files)
+    input:
+    // Reads to merge
+    // [meta, [ read1, read2 ] ]
+    tuple val(meta), path(fastq_files)
 
-  output:
-  // merged fastq file
-  tuple val(meta), path("${meta.id}.fastq"), emit: merged_reads
+    output:
+    // merged fastq file
+    tuple val(meta), path("${meta.id}.merged.fastq"), emit: merged_reads
 
-  script:
-  """
-  zcat -f ${fastq_files} > "${meta.id}.fastq"
-  """
+    script:
+    """
+    zcat -f ${fastq_files} > "${meta.id}.merged.fastq"
+    """
 }
