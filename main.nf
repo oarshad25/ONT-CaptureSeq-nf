@@ -233,14 +233,22 @@ workflow {
     * Alignment MultiQC report
     */
 
-    // alignment statistics input channel for MultiQC
+    // alignment flagstats input channel for MultiQC
     multiqc_flagstat_ch = ALIGNMENT.out.flagstat.collect { it -> it[1] }
+
+    // nanostats input channel for multiQC
+    multiqc_alignment_nanostats_ch = ALIGNMENT.out.nanostats_files.collect { it -> it[1] }
 
     // channel with text files containing read distribution calculations
     multiqc_rseqc_ch = ALIGNMENT.out.rseqc_read_dist.collect { it -> it[1] }.ifEmpty([])
 
-    // combine samtools flagstat and RSeQC read distribution files
-    multiqc_alignment_input_files_ch = multiqc_flagstat_ch.mix(multiqc_rseqc_ch).collect()
+    // combine samtools flagstat, nanostats and RSeQC read distribution files
+    multiqc_alignment_input_files_ch = multiqc_flagstat_ch
+        .mix(
+            multiqc_alignment_nanostats_ch,
+            multiqc_rseqc_ch,
+        )
+        .collect()
 
     // run MultiQC on aligned read statistics
     MULTIQC(multiqc_alignment_input_files_ch, "aligned")

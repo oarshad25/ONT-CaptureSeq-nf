@@ -49,6 +49,9 @@ process NANOPLOT {
             input_type_opt = "--fastq_rich"
         }
     }
+    else if (inputfile.name.endsWith(".bam")) {
+        input_type_opt = "--bam"
+    }
     else {
         error("Unrecognised input file: ${inputfile}")
     }

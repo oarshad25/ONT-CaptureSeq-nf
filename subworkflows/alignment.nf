@@ -15,6 +15,7 @@ include { MINIMAP2_INDEX } from "../modules/minimap2_index.nf"
 include { MINIMAP2 } from "../modules/minimap2"
 include { SAMTOOLS } from "../modules/samtools"
 include { CRAMINO } from "../modules/cramino"
+include { NANOPLOT } from "../modules/nanoplot"
 include { FILTER_BAM_MAPPED } from "../modules/filter_bam_mapped"
 
 include { RSEQC } from "./rseqc"
@@ -93,6 +94,13 @@ workflow ALIGNMENT {
     CRAMINO(SAMTOOLS.out.bambai)
 
     /*
+    * Run nanoplot to get metrics on alignment bams
+    */
+
+    def nanoplot_input_ch = SAMTOOLS.out.bambai.map { meta, bam, _bai -> tuple(meta, bam) }
+    NANOPLOT(nanoplot_input_ch, "aligned", "")
+
+    /*
     * Use RSeQC to generate read distribution
     */
 
@@ -123,5 +131,6 @@ workflow ALIGNMENT {
     bambai = bambai_ch // sorted and indexed reads (optionally filtered to mapped only): [val(meta), path(bam), path(bai)]
     flagstat = SAMTOOLS.out.flagstat // alignment flagstats [val(meta), path(flagstat_file)]
     cramino_stats = CRAMINO.out.stats_txt // cramino bam stats [val(meta), path(cramino_stat_file)]
+    nanostats_files = NANOPLOT.out.txt // nanostats [val(meta), path(nanostat_file)]
     rseqc_read_dist = rseqc_read_dist_ch // RSeQC read distribution calculations [val(meta), path(read_dist_file)] or Channel.empty(), if skip_rseqc
 }
