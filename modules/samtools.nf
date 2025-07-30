@@ -28,13 +28,13 @@ process SAMTOOLS {
     script:
     """
     # convert SAM to sorted BAM
-    samtools view -Sb ${sam} | \\
+    samtools view -@ ${task.cpus} -Sb ${sam} | \\
     samtools sort -@ ${task.cpus} -O bam -o ${meta.id}.bam -
 
     # index BAM
-    samtools index ${meta.id}.bam
+    samtools index -@ ${task.cpus} ${meta.id}.bam
 
     # post-mapping QC
-    samtools flagstat ${meta.id}.bam > ${meta.id}.flagstat.txt
+    samtools flagstat -@ ${task.cpus} ${meta.id}.bam > ${meta.id}.flagstat.txt
     """
 }
