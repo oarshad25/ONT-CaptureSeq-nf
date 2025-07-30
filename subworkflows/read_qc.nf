@@ -31,5 +31,5 @@ workflow READ_QC {
     MULTIQC(multiqc_input_ch, step)
 
     emit:
-    nanostats_files = NANOPLOT.out.txt.map { it -> it[1] } // queue channel of sample nanostat txt files file(sample1_NanoStats.txt)
+    nanostats_files = NANOPLOT.out.txt // queue channel of sample nanostat txt files: [val(meta), path(nanostats_files)] file(sample1_NanoStats.txt)
 }
