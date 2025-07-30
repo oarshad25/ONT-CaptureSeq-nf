@@ -237,7 +237,7 @@ workflow {
     multiqc_flagstat_ch = ALIGNMENT.out.flagstat.collect { it -> it[1] }
 
     // nanostats input channel for multiQC
-    multiqc_alignment_nanostats_ch = ALIGNMENT.out.nanostats_files.collect { it -> it[1] }
+    multiqc_alignment_nanostats_ch = ALIGNMENT.out.nanostats.collect { it -> it[1] }
 
     // channel with text files containing read distribution calculations
     multiqc_rseqc_ch = ALIGNMENT.out.rseqc_read_dist.collect { it -> it[1] }.ifEmpty([])

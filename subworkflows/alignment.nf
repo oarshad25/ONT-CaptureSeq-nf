@@ -131,6 +131,6 @@ workflow ALIGNMENT {
     bambai = bambai_ch // sorted and indexed reads (optionally filtered to mapped only): [val(meta), path(bam), path(bai)]
     flagstat = SAMTOOLS.out.flagstat // alignment flagstats [val(meta), path(flagstat_file)]
     cramino_stats = CRAMINO.out.stats_txt // cramino bam stats [val(meta), path(cramino_stat_file)]
-    nanostats_files = NANOPLOT.out.txt // nanostats [val(meta), path(nanostat_file)]
+    nanostats = NANOPLOT.out.txt // nanostats [val(meta), path(nanostat_file)]
     rseqc_read_dist = rseqc_read_dist_ch // RSeQC read distribution calculations [val(meta), path(read_dist_file)] or Channel.empty(), if skip_rseqc
 }
