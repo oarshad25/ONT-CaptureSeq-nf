@@ -10,8 +10,8 @@ include { findFastqFiles } from "./lib/utilities.nf"
 include { CONCAT_FASTQ } from "./modules/concat_fastq"
 include { FILTER_READS } from "./modules/filter_reads"
 include { RESTRANDER } from "./modules/restrander"
-
-include { MULTIQC } from "./modules/multiqc.nf"
+include { MULTIQC } from "./modules/multiqc"
+include { ISOQUANT } from "./modules/isoquant"
 
 // include subworkflows
 include { PREPARE_REFERENCE_FILES } from "./subworkflows/prepare_reference_files"
@@ -252,6 +252,17 @@ workflow {
 
     // run MultiQC on aligned read statistics
     MULTIQC(multiqc_alignment_input_files_ch, "aligned")
+
+    /*
+    * ISOQUANT
+    */
+
+    ISOQUANT(
+        aligned_reads_ch.collect { it -> it[1] },
+        aligned_reads_ch.collect { it -> it[2] },
+        genome_ch,
+        annotation_ch,
+    )
 
     /*
     * Workflow event handlers
