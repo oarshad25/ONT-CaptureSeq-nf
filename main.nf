@@ -262,6 +262,7 @@ workflow {
         aligned_reads_ch.collect { it -> it[2] },
         genome_ch,
         annotation_ch,
+        params.isoquant_complete_genedb,
     )
 
     /*

@@ -128,3 +128,11 @@ Command-line options for Minimap2 alignment. See [minimap2 options](https://lh3.
 | Parameter           | Type    | Description                                                                                                  | Default |
 | ------------------- | ------- | ------------------------------------------------------------------------------------------------------------ | ------- |
 | `filter_bam_mapped` | boolean | Whether to filter aligned bam to mapped reads only i.e. whether to filter out unmapped reads from alignments | true    |
+
+#### Isoform Discovery and Quantification
+
+##### IsoQuant
+
+| Parameter                   | Type    | Description                                                                                         | Default |
+| ----------------------------| ------- | ----------------------------------------------------------------------------------------------------| ------- |
+| `isoquant_complete_genedb`  | boolean | Whether to set option --complete_genedb. Set to true for official annotations such as from GENCODE  | true    |
