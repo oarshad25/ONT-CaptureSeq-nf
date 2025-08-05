@@ -12,6 +12,7 @@ include { FILTER_READS } from "./modules/filter_reads"
 include { RESTRANDER } from "./modules/restrander"
 include { MULTIQC } from "./modules/multiqc"
 include { ISOQUANT } from "./modules/isoquant"
+include { ISOQUANT_VISUALIZE } from "./modules/isoquant_visualize"
 
 // include subworkflows
 include { PREPARE_REFERENCE_FILES } from "./subworkflows/prepare_reference_files"
@@ -264,6 +265,17 @@ workflow {
         annotation_ch,
         params.isoquant_complete_genedb,
     )
+
+    // Note: Following section is a stub as IsoQuant visualisation tool does not work
+    // TODO: look at GitHub issues to see if IsoQuant visualisation tool fixed
+    if (params.isoquant_visualize_genelist) {
+        isoquant_visualize_genelist_ch = Channel.fromPath(params.isoquant_visualize_genelist, checkIfExists: true)
+        ISOQUANT_VISUALIZE(
+            ISOQUANT.out.output_dir,
+            isoquant_visualize_genelist_ch,
+            annotation_ch,
+        )
+    }
 
     /*
     * Workflow event handlers

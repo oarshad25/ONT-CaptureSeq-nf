@@ -49,6 +49,8 @@ process ISOQUANT {
     path ("**/*.discovered_transcript_grouped_counts.tsv"), emit: discovered_transcript_grouped_counts, optional: true
     path ("**/*.discovered_gene_grouped_counts.tsv"), emit: discovered_gene_grouped_counts, optional: true
 
+    path "isoquant", emit: output_dir
+
     script:
     def complete_genedb_flag = complete_genedb ? "--complete_genedb" : ""
 
