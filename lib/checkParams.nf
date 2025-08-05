@@ -63,4 +63,10 @@ def checkParams() {
     if (params.run_restrander && !file(params.restrander_config).exists()) {
         error("Specified restrander config: `${params.restrander}` does not exist.")
     }
+
+    // check that no external junction bed file is provided for minimap via 'params.minimap2_junc_bed' if flag to use annotation gtf 'params.alignment_use_annotation' is set
+
+    if (params.alignment_use_annotation && file(params.minimap2_junc_bed).exists() && file(params.minimap2_junc_bed).name != 'NO_FILE') {
+        error("Mutually exclusive parameters set. Parameter to use annotation gtf in alignment 'params.alignment_use_annotation' is set to true as well as providing external junction bed file for minimap2 via 'params.minimap2_junc_bed' ${params.minimap2_junc_bed}")
+    }
 }

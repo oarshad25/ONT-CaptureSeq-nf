@@ -100,34 +100,35 @@ Options for configuring steps/tools in the workflow
 
 #### Alignment
 
+##### General Options
+
+| Parameter                  | Type    | Description                                                                                                                                                                                   | Default |
+| -------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `alignment_use_annotation` | boolean | Minimap2 can optionally take annotated genes as input. This parameter selects whether to use reference annotation in Minimap2 alignment as input to prioritise on annotated splice junctions. | false   |
+| `filter_bam_mapped`        | boolean | Whether to filter aligned bam to mapped reads only i.e. whether to filter out unmapped reads from alignments                                                                                  | true    |
+
 ##### MiniMap2
 
 Command-line options for Minimap2 alignment. See [minimap2 options](https://lh3.github.io/minimap2/minimap2.html)
 
-| Parameter                      | Type      | Description                                                                           | Default                     |
-| ------------------------------ | --------- | ------------------------------------------------------------------------------------- | --------------------------- |
-| `skip_save_minimap2_index`     | boolean   | Whether to skip prebuilding and saving Minimap2 index.                                | false                       |
-| `minimap2_indexing_extra_opts` | string    | Any extra options to be provided to Minimap2 indexing                                 |                             |
-| `minimap2_junc_bed`            | string    | Optional path to Minimap junction bed file (used by `--junc-bed`)                     |                             |
-| `minimap2_x`                   | string    | Preset, Minimap2 `-x` option e.g. `"map-ont"`                                         | `"splice"`                  |
-| `minimap2_k`                   | integer   | kmer size, Minimap2 `-k` option e.g. `14`                                             | Minimap2 default (`15`)     |
-| `minimap2_u`                   | character | Minimap2 `-u` option e.g. `"b"`                                                       | Minimap2 default (`"n"`)    |
-| `minimap2_G`                   | string    | Maximum intron length, Minimap2 `-G` option e.g. `"500K"`                             | Minimap2 default (`"200k"`) |
-| `minimap2_I`                   | string    | Batchsize for indexing, Minimap2 `-I` option e.g. `"8G"`                              | Minimap2 default            |
-| `minimap2_cs`                  | string    | Output cs tag, Minimap2 `--cs` option e.g. `"long"`                                   | Minimap2 default (none)     |
-| `minimap2_extra_opts`          | string    | Any extra options to be provided to Minimap2 e.g. `"--splice-flank=no"` for SIRV data |                             |
+| Parameter                      | Type      | Description                                                                                                                                                                               | Default                     |
+| ------------------------------ | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
+| `skip_save_minimap2_index`     | boolean   | Whether to skip prebuilding and saving Minimap2 index.                                                                                                                                    | false                       |
+| `minimap2_indexing_extra_opts` | string    | Any extra options to be provided to Minimap2 indexing                                                                                                                                     |                             |
+| `minimap2_junc_bed`            | string    | Optional path to Minimap junction bed file (used by `--junc-bed`). Cannot be used in conjunction with `alignment_use_annotation` as that sets input annotation to be used by `--junc-bed` |                             |
+| `minimap2_x`                   | string    | Preset, Minimap2 `-x` option e.g. `"map-ont"`                                                                                                                                             | `"splice"`                  |
+| `minimap2_k`                   | integer   | kmer size, Minimap2 `-k` option e.g. `14`                                                                                                                                                 | Minimap2 default (`15`)     |
+| `minimap2_u`                   | character | Minimap2 `-u` option e.g. `"b"`                                                                                                                                                           | Minimap2 default (`"n"`)    |
+| `minimap2_G`                   | string    | Maximum intron length, Minimap2 `-G` option e.g. `"500K"`                                                                                                                                 | Minimap2 default (`"200k"`) |
+| `minimap2_I`                   | string    | Batchsize for indexing, Minimap2 `-I` option e.g. `"8G"`                                                                                                                                  | Minimap2 default            |
+| `minimap2_cs`                  | string    | Output cs tag, Minimap2 `--cs` option e.g. `"long"`                                                                                                                                       | Minimap2 default (none)     |
+| `minimap2_extra_opts`          | string    | Any extra options to be provided to Minimap2 e.g. `"--splice-flank=no"` for SIRV data                                                                                                     |                             |
 
 ##### RSeQC
 
 | Parameter    | Type    | Description                                                    | Default |
 | ------------ | ------- | -------------------------------------------------------------- | ------- |
 | `skip_rseqc` | boolean | skip read distribution calculation of aligned reads with RSeQC | false   |
-
-##### Additional
-
-| Parameter           | Type    | Description                                                                                                  | Default |
-| ------------------- | ------- | ------------------------------------------------------------------------------------------------------------ | ------- |
-| `filter_bam_mapped` | boolean | Whether to filter aligned bam to mapped reads only i.e. whether to filter out unmapped reads from alignments | true    |
 
 #### Isoform Discovery and Quantification
 

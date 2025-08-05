@@ -3,15 +3,16 @@
 /*
 Alignment subworkflow
 
-* Align input reads to input genome.
-* Convert alignment ouitput to sam to sorted BAM with samtools and index
+* Align input reads to input genome optionally using input annotation or junction bed file
+* Convert alignment output to sam to sorted BAM with samtools and index
   and generate alignment statistics with flagstat
 * Generate aligned reads length and quality histograms with seqkit bam
 * Optionally calculate read distribution statistics with RSeQC
 * Optionally filter alignments to mapped reads only
 */
 
-include { MINIMAP2_INDEX } from "../modules/minimap2_index.nf"
+include { MINIMAP2_INDEX } from "../modules/minimap2_index"
+include { MINIMAP2_PAFTOOLS_GFF2BED } from "../modules/minimap2_paftools_gff2bed"
 include { MINIMAP2 } from "../modules/minimap2"
 include { SAMTOOLS } from "../modules/samtools"
 include { CRAMINO } from "../modules/cramino"
@@ -24,7 +25,8 @@ workflow ALIGNMENT {
     take:
     reads // [ val(meta), path(fasta) ]
     genome // path to genome fasta
-    annotation // path to annotation gtf
+    annotation // path to annotation gtf used by RSeqC and optionally Minimap2
+    alignment_use_annotation // Boolean, whether to use gene annotation as input to Minimap2 to prioritise on annotated splice junctions
     skip_save_minimap2_index // Boolean, skip saving the minimap2 index. This flag controls whether to run indexing seperately
     minimap2_indexing_extra_opts // string, any additional options to pass to indexing process
     minimap2_junc_bed // path to optional junction bed file for MiniMap2
@@ -62,6 +64,13 @@ workflow ALIGNMENT {
     /*
     * Align reads to the genome with MiniMap2
     */
+
+    // if flag to use input annotation in alignment is set, convert annotation to bed using Minimap's utility
+    // and use this bed file in Minimap alignment to prioritise on annotated spliced junctions
+    if (alignment_use_annotation) {
+        MINIMAP2_PAFTOOLS_GFF2BED(annotation)
+        minimap2_junc_bed = MINIMAP2_PAFTOOLS_GFF2BED.out.bed12
+    }
 
     MINIMAP2(
         reads,

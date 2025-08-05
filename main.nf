@@ -205,7 +205,6 @@ workflow {
     * ALIGNMENT
     */
 
-    // TODO: Replace junc bed with bed12 annotation and add option to use it
     minimap2_junc_bed_ch = file(params.minimap2_junc_bed, checkIfExists: true)
 
     // align reads to genome with MiniMap and generate read QC statistics
@@ -213,6 +212,7 @@ workflow {
         processed_reads_ch,
         genome_ch,
         annotation_ch,
+        params.alignment_use_annotation,
         params.skip_save_minimap2_index,
         params.minimap2_indexing_extra_opts,
         minimap2_junc_bed_ch,
