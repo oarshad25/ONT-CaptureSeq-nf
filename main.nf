@@ -264,6 +264,7 @@ workflow {
         genome_ch,
         annotation_ch,
         params.isoquant_complete_genedb,
+        params.isoquant_extra_opts,
     )
 
     // Note: Following section is a stub as IsoQuant visualisation tool does not work

@@ -17,6 +17,8 @@ process ISOQUANT {
     path annotation
     // Boolean, whether to set --complete_genedb option
     val complete_genedb
+    // any additional command line options e.g. "--splice_correction_strategy conservative_ont"
+    val extra_opts
 
     output:
     path ("**/*.read_assignments.tsv.gz"), emit: read_assignments
@@ -66,6 +68,7 @@ process ISOQUANT {
         --genedb ${annotation} ${complete_genedb_flag} \\
         --output isoquant \\
         --labels ${labels} \\
-        --counts_format matrix
+        --counts_format matrix \\
+        ${extra_opts}
     """
 }

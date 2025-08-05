@@ -133,6 +133,7 @@ Command-line options for Minimap2 alignment. See [minimap2 options](https://lh3.
 
 ##### IsoQuant
 
-| Parameter                   | Type    | Description                                                                                         | Default |
-| ----------------------------| ------- | ----------------------------------------------------------------------------------------------------| ------- |
-| `isoquant_complete_genedb`  | boolean | Whether to set option --complete_genedb. Set to true for official annotations such as from GENCODE  | true    |
+| Parameter                  | Type    | Description                                                                                                                  | Default |
+| -------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `isoquant_complete_genedb` | boolean | Whether to set option --complete_genedb. Set to true for official annotations such as from GENCODE                           | true    |
+| `isoquant_extra_opts`      | string  | Any additional command line options to pass to IsoQuant e.g. "--sqanti_output --splice_correction_strategy conservative_ont" |         |
