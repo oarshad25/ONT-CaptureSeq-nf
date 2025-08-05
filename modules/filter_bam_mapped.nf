@@ -19,7 +19,7 @@ process FILTER_BAM_MAPPED {
 
     output:
     // filtered and indexed bam file (input BAM with unmapped reads filtered out)
-    tuple val(meta), path("${meta.id}.filtered.bam"), path("${meta.id}.filtered.bai"), emit: filtered_bambai
+    tuple val(meta), path("${meta.id}.filtered.bam"), path("${meta.id}.filtered.bam.bai"), emit: filtered_bambai
 
     script:
     """
@@ -28,6 +28,6 @@ process FILTER_BAM_MAPPED {
     samtools sort -@ ${task.cpus} -o ${meta.id}.filtered.bam
 
     # index filtered BAM
-    samtools index -@ ${task.cpus} ${meta.id}.filtered.bam ${meta.id}.filtered.bai
+    samtools index -@ ${task.cpus} ${meta.id}.filtered.bam
     """
 }
