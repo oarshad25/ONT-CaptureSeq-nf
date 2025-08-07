@@ -65,8 +65,12 @@ def checkParams() {
     }
 
     // check that no external junction bed file is provided for minimap via 'params.minimap2_junc_bed' if flag to use annotation gtf 'params.alignment_use_annotation' is set
-
     if (params.alignment_use_annotation && file(params.minimap2_junc_bed).exists() && file(params.minimap2_junc_bed).name != 'NO_FILE') {
         error("Mutually exclusive parameters set. Parameter to use annotation gtf in alignment 'params.alignment_use_annotation' is set to true as well as providing external junction bed file for minimap2 via 'params.minimap2_junc_bed' ${params.minimap2_junc_bed}")
+    }
+
+    // check that if minimap2_junc_bonus is provided than either flag 'alignment_use_annotation' is set or junction bed file is provided
+    if (params.minimap2_junc_bonus && !params.alignment_use_annotation && file(params.minimap2_junc_bed).name == 'NO_FILE') {
+        error("params.minimap2_junc_bonus has been provided. However neither 'params.alignment_use_annotation' is true nor external junction bed file for minimap2 via 'params.minimap2_junc_bed' has been provided")
     }
 }

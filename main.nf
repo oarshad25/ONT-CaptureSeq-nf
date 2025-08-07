@@ -222,6 +222,7 @@ workflow {
         params.minimap2_G,
         params.minimap2_I,
         params.minimap2_cs,
+        params.minimap2_junc_bonus,
         params.minimap2_extra_opts,
         params.skip_rseqc,
         params.filter_bam_mapped,

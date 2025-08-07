@@ -36,6 +36,7 @@ workflow ALIGNMENT {
     minimap2_G
     minimap2_I
     minimap2_cs
+    minimap2_junc_bonus
     minimap2_extra_opts
     skip_rseqc // Boolean, whether to skip RSeQC read distribution calculations
     filter_bam_mapped // Boolean, whether to get mapped reads only from aligned BAM
@@ -82,6 +83,7 @@ workflow ALIGNMENT {
         minimap2_G,
         minimap2_I,
         minimap2_cs,
+        minimap2_junc_bonus,
         minimap2_extra_opts,
     )
 

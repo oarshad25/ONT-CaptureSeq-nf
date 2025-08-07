@@ -37,6 +37,9 @@ process MINIMAP2 {
     //--cs argument
     val cs
 
+    //--junc-bonus argument
+    val junc_bonus
+
     // any additional options
     val extra_opts
 
@@ -51,6 +54,7 @@ process MINIMAP2 {
     def indexing_batchsize_flag = I ? "-I ${I}" : ""
     def cs_flag = cs ? "--cs=${cs}" : ""
     def junc_bed_flag = junc_bed.name != 'NO_FILE' ? "--junc-bed ${junc_bed}" : ''
+    def junc_bonus_flag = junc_bonus ? "--junc-bonus ${junc_bonus}" : ""
 
     """
     minimap2 \\
@@ -65,6 +69,7 @@ process MINIMAP2 {
         --secondary=yes \\
         ${extra_opts} \\
         ${junc_bed_flag} \\
+        ${junc_bonus_flag} \\
         ${genome} \\
         ${fastq} > ${meta.id}.sam
     """

@@ -122,6 +122,7 @@ Command-line options for Minimap2 alignment. See [minimap2 options](https://lh3.
 | `minimap2_G`                   | string    | Maximum intron length, Minimap2 `-G` option e.g. `"500K"`                                                                                                                                 | Minimap2 default (`"200k"`) |
 | `minimap2_I`                   | string    | Batchsize for indexing, Minimap2 `-I` option e.g. `"8G"`                                                                                                                                  | Minimap2 default            |
 | `minimap2_cs`                  | string    | Output cs tag, Minimap2 `--cs` option e.g. `"long"`                                                                                                                                       | Minimap2 default (none)     |
+| `minimap2_junc_bonus`          | integer   | Score bonus for splice site in annotation. Effective if `alignment_use_annotation` is set or `minimap2_junc_bed` is provided                                                              | Minimap2 default (9)        |
 | `minimap2_extra_opts`          | string    | Any extra options to be provided to Minimap2 e.g. `"--splice-flank=no"` for SIRV data                                                                                                     |                             |
 
 ##### RSeQC
