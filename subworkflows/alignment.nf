@@ -126,6 +126,8 @@ workflow ALIGNMENT {
         rseqc_read_dist_ch = RSEQC.out.read_distribution_txt
         // channel with log files for RSeQC junction annotation module
         rseqc_junc_anno_log_ch = RSEQC.out.junction_annotation_log
+        // channel with rscripts for RSeQC junction saturation module
+        rseqc_junc_sat_rscript_ch = RSEQC.out.junction_saturation_rscript
     }
 
     /*
@@ -147,4 +149,5 @@ workflow ALIGNMENT {
     nanostats = NANOPLOT.out.txt // nanostats [val(meta), path(nanostat_file)]
     rseqc_read_dist = rseqc_read_dist_ch // RSeQC read distribution calculations [val(meta), path(read_dist_file)] or Channel.empty(), if skip_rseqc
     rseqc_junc_anno_log = rseqc_junc_anno_log_ch // RSeQC junction annotation module logs [val(meta), path(junc_anno_log)] or Channel.empty(), if skip_rseqc
+    rseqc_junc_sat_rscript = rseqc_junc_sat_rscript_ch // RSeQC junction annotation module logs [val(meta), path(junc_anno_log)] or Channel.empty(), if skip_rseqc
 }

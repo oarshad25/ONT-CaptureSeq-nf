@@ -5,7 +5,7 @@
 
 Use RSeQC on aligned reads. This subworkflow takes the aligned reads
 (sorted and indexed BAMs) and input reference GTF and runs the RSeqC modules
-read_distribution.py, junction_annotation.py
+read_distribution.py, junction_annotation.py, junction_saturation.py
 
 * First it converts the input GTF to genePred by using UCSC's
   gtfToGenePred utility.
@@ -14,6 +14,8 @@ read_distribution.py, junction_annotation.py
 * RSeQC module read_distribution.py is usedto calculate read distribution
   of mapped reads over genomic features.
 * Module junction_annotation.py is used to compare detected splice junctions to reference
+* Module junction_saturation.py is used to determine if sequencing depth is deep enough
+  to perform alternative splicing analysis
 */
 workflow RSEQC {
     take:
@@ -29,10 +31,12 @@ workflow RSEQC {
 
     RSEQC_READ_DISTRIBUTION(bambai, rseqc_bed_ch)
     RSEQC_JUNCTION_ANNOTATION(bambai, rseqc_bed_ch)
+    RSEQC_JUNCTION_SATURATION(bambai, rseqc_bed_ch)
 
     emit:
     read_distribution_txt = RSEQC_READ_DISTRIBUTION.out.txt // [val(meta), path(txt)]
     junction_annotation_log = RSEQC_JUNCTION_ANNOTATION.out.log // [val(meta), path(log)]
+    junction_saturation_rscript = RSEQC_JUNCTION_SATURATION.out.rscript // [val(meta), path(rscript)]
 }
 
 // use UCSC's gtfToGenePred to convert a GTF file to genePred
@@ -143,5 +147,36 @@ process RSEQC_JUNCTION_ANNOTATION {
         -r ${bed} \\
         -o ${meta.id} \\
         > ${meta.id}.junction_annotation.log 2>&1
+    """
+}
+
+// run RSeQC junction saturation module
+process RSEQC_JUNCTION_SATURATION {
+    tag "${meta.id}"
+    label 'single'
+
+    conda "bioconda rseqc=5.0.4"
+    container "${workflow.containerEngine == 'apptainer'
+        ? 'https://depot.galaxyproject.org/singularity/rseqc:5.0.4--pyhdfd78af_0'
+        : 'quay.io/biocontainers/rseqc:5.0.4--pyhdfd78af_0'}"
+
+    input:
+    // sorted and indexed bam file
+    tuple val(meta), path(bam), path(bai)
+
+    // bed file output from UCSC utilities
+    path bed
+
+    output:
+    tuple val(meta), path("*.r"), emit: rscript
+    tuple val(meta), path("*.log"), emit: log
+
+    script:
+    """
+    junction_saturation.py \\
+        -i ${bam} \\
+        -r ${bed} \\
+        -o ${meta.id} \\
+        > ${meta.id}.junction_saturation.log 2>&1
     """
 }

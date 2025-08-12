@@ -247,12 +247,16 @@ workflow {
     // channel with text files containing RSeQC junction annotation module logs
     multiqc_rseqc_junc_anno_ch = ALIGNMENT.out.rseqc_junc_anno_log.collect { it -> it[1] }.ifEmpty([])
 
+    // channel with files containing RSeQC junction saturation module rscripts
+    multiqc_rseqc_junc_sat_ch = ALIGNMENT.out.rseqc_junc_sat_rscript.collect { it -> it[1] }.ifEmpty([])
+
     // combine samtools flagstat, nanostats and RSeQC files
     multiqc_alignment_input_files_ch = multiqc_flagstat_ch
         .mix(
             multiqc_alignment_nanostats_ch,
             multiqc_rseqc_read_dist_ch,
             multiqc_rseqc_junc_anno_ch,
+            multiqc_rseqc_junc_sat_ch,
         )
         .collect()
 
