@@ -241,14 +241,18 @@ workflow {
     // nanostats input channel for multiQC
     multiqc_alignment_nanostats_ch = ALIGNMENT.out.nanostats.collect { it -> it[1] }
 
-    // channel with text files containing read distribution calculations
-    multiqc_rseqc_ch = ALIGNMENT.out.rseqc_read_dist.collect { it -> it[1] }.ifEmpty([])
+    // channel with text files containing RSeQC read distribution calculations
+    multiqc_rseqc_read_dist_ch = ALIGNMENT.out.rseqc_read_dist.collect { it -> it[1] }.ifEmpty([])
 
-    // combine samtools flagstat, nanostats and RSeQC read distribution files
+    // channel with text files containing RSeQC junction annotation module logs
+    multiqc_rseqc_junc_anno_ch = ALIGNMENT.out.rseqc_junc_anno_log.collect { it -> it[1] }.ifEmpty([])
+
+    // combine samtools flagstat, nanostats and RSeQC files
     multiqc_alignment_input_files_ch = multiqc_flagstat_ch
         .mix(
             multiqc_alignment_nanostats_ch,
-            multiqc_rseqc_ch,
+            multiqc_rseqc_read_dist_ch,
+            multiqc_rseqc_junc_anno_ch,
         )
         .collect()
 

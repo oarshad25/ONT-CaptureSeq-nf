@@ -7,7 +7,7 @@ Alignment subworkflow
 * Convert alignment output to sam to sorted BAM with samtools and index
   and generate alignment statistics with flagstat
 * Generate aligned reads length and quality histograms with seqkit bam
-* Optionally calculate read distribution statistics with RSeQC
+* Optionally calculate read statistics with RSeQC
 * Optionally filter alignments to mapped reads only
 */
 
@@ -123,7 +123,9 @@ workflow ALIGNMENT {
         // run RSeQC subworkflow
         RSEQC(SAMTOOLS.out.bambai, annotation)
         // channel with text files containing read distribution calculations
-        rseqc_read_dist_ch = RSEQC.out.txt
+        rseqc_read_dist_ch = RSEQC.out.read_distribution_txt
+        // channel with log files for RSeQC junction annotation module
+        rseqc_junc_anno_log_ch = RSEQC.out.junction_annotation_log
     }
 
     /*
@@ -144,4 +146,5 @@ workflow ALIGNMENT {
     cramino_stats = CRAMINO.out.stats_txt // cramino bam stats [val(meta), path(cramino_stat_file)]
     nanostats = NANOPLOT.out.txt // nanostats [val(meta), path(nanostat_file)]
     rseqc_read_dist = rseqc_read_dist_ch // RSeQC read distribution calculations [val(meta), path(read_dist_file)] or Channel.empty(), if skip_rseqc
+    rseqc_junc_anno_log = rseqc_junc_anno_log_ch // RSeQC junction annotation module logs [val(meta), path(junc_anno_log)] or Channel.empty(), if skip_rseqc
 }
