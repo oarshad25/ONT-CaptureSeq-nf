@@ -11,8 +11,9 @@ read_distribution.py, junction_annotation.py, junction_saturation.py
   gtfToGenePred utility.
 * The genePred is then converted to a BED using UCSC's genePredToBed. The reference
   gene model BED file is then used by the RSeQC modules to calculate various statistics:
-* RSeQC module read_distribution.py is usedto calculate read distribution
+* RSeQC module read_distribution.py is used to calculate read distribution
   of mapped reads over genomic features.
+* read_duplication.py is used to calculate read duplication rate based on mapping position
 * Module junction_annotation.py is used to compare detected splice junctions to reference
 * Module junction_saturation.py is used to determine if sequencing depth is deep enough
   to perform alternative splicing analysis
@@ -30,11 +31,13 @@ workflow RSEQC {
     rseqc_bed_ch = UCSC_GENEPRED_TO_BED.out.bed
 
     RSEQC_READ_DISTRIBUTION(bambai, rseqc_bed_ch)
+    RSEQC_READ_DUPLICATION(bambai, rseqc_bed_ch)
     RSEQC_JUNCTION_ANNOTATION(bambai, rseqc_bed_ch)
     RSEQC_JUNCTION_SATURATION(bambai, rseqc_bed_ch)
 
     emit:
     read_distribution_txt = RSEQC_READ_DISTRIBUTION.out.txt // [val(meta), path(txt)]
+    read_duplication_pos_xls = RSEQC_READ_DUPLICATION.out.pos_xls // [val(meta), path(xls)]
     junction_annotation_log = RSEQC_JUNCTION_ANNOTATION.out.log // [val(meta), path(log)]
     junction_saturation_rscript = RSEQC_JUNCTION_SATURATION.out.rscript // [val(meta), path(rscript)]
 }
@@ -114,6 +117,37 @@ process RSEQC_READ_DISTRIBUTION {
     """
 }
 
+// use RSeQC to calculate read duplication statistics
+process RSEQC_READ_DUPLICATION {
+    tag "${meta.id}"
+    label 'single'
+
+    conda "bioconda rseqc=5.0.4"
+    container "${workflow.containerEngine == 'apptainer'
+        ? 'https://depot.galaxyproject.org/singularity/rseqc:5.0.4--pyhdfd78af_0'
+        : 'quay.io/biocontainers/rseqc:5.0.4--pyhdfd78af_0'}"
+
+    input:
+    // sorted and indexed bam file
+    tuple val(meta), path(bam), path(bai)
+
+    // bed file output from UCSC utilities
+    path bed
+
+    output:
+    tuple val(meta), path("*seq.DupRate.xls"), emit: seq_xls
+    tuple val(meta), path("*pos.DupRate.xls"), emit: pos_xls
+    tuple val(meta), path("*.pdf"), emit: pdf, optional: true
+    tuple val(meta), path("*.r"), emit: rscript, optional: true
+
+    script:
+    """
+    read_duplication.py \\
+        -i ${bam} \\
+        -o ${meta.id}
+    """
+}
+
 // use RSeQC to compare detected splice junctions to reference
 process RSEQC_JUNCTION_ANNOTATION {
     tag "${meta.id}"
@@ -146,7 +180,7 @@ process RSEQC_JUNCTION_ANNOTATION {
         -i ${bam} \\
         -r ${bed} \\
         -o ${meta.id} \\
-        > ${meta.id}.junction_annotation.log 2>&1
+        2> ${meta.id}.junction_annotation.log
     """
 }
 
@@ -169,14 +203,12 @@ process RSEQC_JUNCTION_SATURATION {
 
     output:
     tuple val(meta), path("*.r"), emit: rscript
-    tuple val(meta), path("*.log"), emit: log
 
     script:
     """
     junction_saturation.py \\
         -i ${bam} \\
         -r ${bed} \\
-        -o ${meta.id} \\
-        > ${meta.id}.junction_saturation.log 2>&1
+        -o ${meta.id}
     """
 }
