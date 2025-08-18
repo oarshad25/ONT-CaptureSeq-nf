@@ -4,7 +4,7 @@ def helpMessage() {
         """
         Usage:
 
-        nextflow run main.nf --inputdir <path> [options]
+        nextflow run main.nf -profile <docker/apptainer> --samplesheet <path> --genome <path> --annotation <path>[options]
 
         Required Arguments:
         -------------------
