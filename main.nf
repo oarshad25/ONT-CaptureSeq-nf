@@ -13,6 +13,7 @@ include { RESTRANDER } from "./modules/restrander"
 include { MULTIQC } from "./modules/multiqc"
 include { ISOQUANT } from "./modules/isoquant"
 include { ISOQUANT_VISUALIZE } from "./modules/isoquant_visualize"
+include { MERGE_BAMS } from "./modules/merge_bams"
 
 // include subworkflows
 include { PREPARE_REFERENCE_FILES } from "./subworkflows/prepare_reference_files"
@@ -290,6 +291,16 @@ workflow {
             annotation_ch,
         )
     }
+
+    /*
+    * FLAIR TRANSCRIPTOME
+    */
+
+    // combine the aligned reads
+    MERGE_BAMS(
+        aligned_reads_ch.collect { it -> it[1] },
+        aligned_reads_ch.collect { it -> it[2] },
+    )
 
     /*
     * Workflow event handlers
