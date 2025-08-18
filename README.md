@@ -1,7 +1,32 @@
 # ONT-CaptureSeq-nf
 
 **ONT-CaptureSeq-nf** is a bioinformatics pipeline for the analysis of
-multiplexed long-read nanopore targeted RNA capture sequencing developed in [Nextflow](https://www.nextflow.io/).
+multiplexed long-read nanopore targeted RNA capture sequencing.
+
+The pipeline is developed in [Nextflow](https://www.nextflow.io/) with software
+dependencies managed using [Docker](https://www.docker.com) or [Apptainer](https://apptainer.org).
+
+## Pipeline Summary
+
+1. Merge fastq files per sample and decompress  ([zcat](https://linux.die.net/man/1/zcat)).
+2. Raw read QC ([NanoPlot](https://github.com/wdecoster/NanoPlot), [MultiQC](https://multiqc.info/docs/)).
+3. Filter reads on length and quality ([seqkit seq](https://bioinf.shenwei.me/seqkit/usage/#seq); _optional_).
+    * QC of filtered reads.
+4. Reorient reads ([restrander](https://github.com/mritchielab/restrander); _optional_).
+    * QC of reoriented reads.
+5. Filter out any samples with small number of reads.
+6. Align reads to genome ([minimap2](https://github.com/lh3/minimap2))
+    * Optionally prebuild minimap2 genome index.
+    * Optionally use reference annotation to prioritise on known splice junctions.
+7. Sort, index alignments and generate alignment statistics ([samtools](https://www.htslib.org/doc/))
+8. Additional QC of aligned reads
+    * [Cramino](https://github.com/wdecoster/cramino).
+    * [NanoPlot](https://github.com/wdecoster/NanoPlot).
+    * Optionally [RSeQC](https://rseqc.sourceforge.net).
+      * Input annotation for RSeQC is prepared using [ucsc-gtftogenepred](https://open.bioqueue.org/home/knowledge/showKnowledge/sig/ucsc-gtftogenepred) and [ucsc-genepredtobed](https://open.bioqueue.org/home/knowledge/showKnowledge/sig/ucsc-genepredtobed).
+9. Summarise mapping QC ([MultiQC](https://multiqc.info/docs/)).
+10. Filter out unmapped reads ([samtools](https://www.htslib.org/doc/)).
+11. Transcript reconstruction and quantification ([IsoQuant](https://ablab.github.io/IsoQuant/)).
 
 ## Getting ONT-CaptureSeq-nf
 ```bash
@@ -18,15 +43,29 @@ Example usage:
 
 ```bash
 $ nextflow run main.nf \
-  --inputdir "path/to/inputdir" \
+  -profile <docker/apptainer> \
+  --samplesheet "path/to/samplesheet" \
   --genome "path/to/genome.fa" \
   --annotation "path/to/annotation.gtf"
 ```
 
-Can also use params.json to specify the parameters
+In addition to specifying parameters at the command line, can also specify the
+parameters through either editing the parameter configuration file [./conf/params.config](conf/params.config)
+or via Nextflow `-params-file` option:
 
 ```bash
-$ nextflow run main.nf -params-file params.json
+$ nextflow run main.nf -profile <docker/apptainer> -params-file params.json
+```
+
+Can customise execution to the specific compute platform on which the pipeline is executed, by editing the `nextflow.config` file.
+This pipeline was developed on University of Oxford's [BMRC](https://www.medsci.ox.ac.uk/for-staff/resources/bmrc) cluster:
+
+```bash
+$ nextflow run main.nf \
+  -profile bmrc \
+  --samplesheet "path/to/samplesheet" \
+  --genome "path/to/genome.fa" \
+  --annotation "path/to/annotation.gtf"
 ```
 
 ### Input
