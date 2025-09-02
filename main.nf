@@ -19,6 +19,7 @@ include { MERGE_BAMS } from "./modules/merge_bams"
 include { PREPARE_REFERENCE_FILES } from "./subworkflows/prepare_reference_files"
 include { READ_QC as RAW_READ_QC ; READ_QC as FILTERED_READ_QC ; READ_QC as RESTRANDED_READ_QC } from "./subworkflows/read_qc"
 include { ALIGNMENT } from "./subworkflows/alignment"
+include { FLAIR } from "./subworkflows/flair"
 
 workflow {
 
@@ -293,13 +294,24 @@ workflow {
     }
 
     /*
-    * FLAIR TRANSCRIPTOME
+    * FLAIR
     */
 
     // combine the aligned reads
     MERGE_BAMS(
         aligned_reads_ch.collect { it -> it[1] },
         aligned_reads_ch.collect { it -> it[2] },
+    )
+
+    flair_align_reads_manifest_ch = Channel.fromPath(params.flair_align_reads_manifest, checkIfExists: true)
+
+    FLAIR(
+        MERGE_BAMS.out.merged_bambai,
+        genome_ch,
+        annotation_ch,
+        processed_reads_ch.collect { it -> it[1] },
+        params.flair_collapse_extra_opts,
+        flair_align_reads_manifest_ch,
     )
 
     /*

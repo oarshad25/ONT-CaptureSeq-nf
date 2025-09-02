@@ -166,15 +166,22 @@ Command-line options for Minimap2 alignment. See [minimap2 options](https://lh3.
 
 ##### RSeQC
 
-| Parameter    | Type    | Description                                                    | Default |
-| ------------ | ------- | -------------------------------------------------------------- | ------- |
-| `skip_rseqc` | boolean | skip read distribution calculation of aligned reads with RSeQC | false   |
+| Parameter    | Type    | Description             | Default |
+| ------------ | ------- | ----------------------- | ------- |
+| `skip_rseqc` | boolean | skip read QC with RSeQC | false   |
 
 #### Isoform Discovery and Quantification
 
 ##### IsoQuant
 
-| Parameter                  | Type    | Description                                                                                                                  | Default |
-| -------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------- | ------- |
-| `isoquant_complete_genedb` | boolean | Whether to set option --complete_genedb. Set to true for official annotations such as from GENCODE                           | true    |
-| `isoquant_extra_opts`      | string  | Any additional command line options to pass to IsoQuant e.g. "--sqanti_output --splice_correction_strategy conservative_ont" |         |
+| Parameter                  | Type    | Description                                                                                                                    | Default |
+| -------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------ | ------- |
+| `isoquant_complete_genedb` | boolean | Whether to set option --complete_genedb. Set to true for official annotations such as from GENCODE                             | true    |
+| `isoquant_extra_opts`      | string  | Any additional command line options to pass to IsoQuant e.g. `"--sqanti_output --splice_correction_strategy conservative_ont"` |         |
+
+##### Flair
+
+| Parameter                    | Type   | Description                                                            | Default                                                                     |
+| ---------------------------- | ------ | ---------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `flair_collapse_extra_opts`  | string | Any additional command line options to pass to flair collapse module   | `"--stringent --check_splice --generate_map --annotation_reliant generate"` |
+| `flair_align_reads_manifest` | string | Required to run flair. Path to sample manifest for flair align module. |                                                                             |
