@@ -270,49 +270,59 @@ workflow {
     MULTIQC(multiqc_alignment_input_files_ch, "aligned")
 
     /*
-    * ISOQUANT
+    * ISOFORM DISCOVERY
     */
 
-    ISOQUANT(
-        aligned_reads_ch.collect { it -> it[1] },
-        aligned_reads_ch.collect { it -> it[2] },
-        genome_ch,
-        annotation_ch,
-        params.isoquant_complete_genedb,
-        params.isoquant_extra_opts,
-    )
+    if (!params.skip_isoform_discovery) {
 
-    // Note: Following section is a stub as IsoQuant visualisation tool does not work
-    // TODO: look at GitHub issues to see if IsoQuant visualisation tool fixed
-    if (params.isoquant_visualize_genelist) {
-        isoquant_visualize_genelist_ch = Channel.fromPath(params.isoquant_visualize_genelist, checkIfExists: true)
-        ISOQUANT_VISUALIZE(
-            ISOQUANT.out.output_dir,
-            isoquant_visualize_genelist_ch,
-            annotation_ch,
-        )
+        if (params.isoform_discovery_method == "isoquant") {
+            /*
+            * ISOQUANT
+            */
+
+            ISOQUANT(
+                aligned_reads_ch.collect { it -> it[1] },
+                aligned_reads_ch.collect { it -> it[2] },
+                genome_ch,
+                annotation_ch,
+                params.isoquant_complete_genedb,
+                params.isoquant_extra_opts,
+            )
+
+            // Note: Following section is a stub as IsoQuant visualisation tool does not work
+            // TODO: look at GitHub issues to see if IsoQuant visualisation tool fixed
+            if (params.isoquant_visualize_genelist) {
+                isoquant_visualize_genelist_ch = Channel.fromPath(params.isoquant_visualize_genelist, checkIfExists: true)
+                ISOQUANT_VISUALIZE(
+                    ISOQUANT.out.output_dir,
+                    isoquant_visualize_genelist_ch,
+                    annotation_ch,
+                )
+            }
+        }
+        else if (params.isoform_discovery_method == "flair") {
+            /*
+            * FLAIR
+            */
+
+            // combine the aligned reads
+            MERGE_BAMS(
+                aligned_reads_ch.collect { it -> it[1] },
+                aligned_reads_ch.collect { it -> it[2] },
+            )
+
+            flair_align_reads_manifest_ch = Channel.fromPath(params.flair_align_reads_manifest, checkIfExists: true)
+
+            FLAIR(
+                MERGE_BAMS.out.merged_bambai,
+                genome_ch,
+                annotation_ch,
+                processed_reads_ch.collect { it -> it[1] },
+                params.flair_collapse_extra_opts,
+                flair_align_reads_manifest_ch,
+            )
+        }
     }
-
-    /*
-    * FLAIR
-    */
-
-    // combine the aligned reads
-    MERGE_BAMS(
-        aligned_reads_ch.collect { it -> it[1] },
-        aligned_reads_ch.collect { it -> it[2] },
-    )
-
-    flair_align_reads_manifest_ch = Channel.fromPath(params.flair_align_reads_manifest, checkIfExists: true)
-
-    FLAIR(
-        MERGE_BAMS.out.merged_bambai,
-        genome_ch,
-        annotation_ch,
-        processed_reads_ch.collect { it -> it[1] },
-        params.flair_collapse_extra_opts,
-        flair_align_reads_manifest_ch,
-    )
 
     /*
     * Workflow event handlers

@@ -73,4 +73,16 @@ def checkParams() {
     if (params.minimap2_junc_bonus && !params.alignment_use_annotation && file(params.minimap2_junc_bed).name == 'NO_FILE') {
         error("params.minimap2_junc_bonus has been provided. However neither 'params.alignment_use_annotation' is true nor external junction bed file for minimap2 via 'params.minimap2_junc_bed' has been provided")
     }
+
+    if (!params.skip_isoform_discovery) {
+        // check valid option is provided for isoform_discovery_method
+        if (params.isoform_discovery_method != "isoquant" && params.isoform_discovery_method != "flair") {
+            error("Invalid option `${params.isoform_discovery_method}` for parameter 'isoform_discovery_method'. Valid parameter values are 'isoquant' or 'flair'.")
+        }
+        if (params.isoform_discovery_method == "flair") {
+            if (!file(params.flair_align_reads_manifest).exists()) {
+                error("Reads manifest for flair: `${params.flair_align_reads_manifest}` does not exist")
+            }
+        }
+    }
 }

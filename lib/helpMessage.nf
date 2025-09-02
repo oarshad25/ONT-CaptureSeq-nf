@@ -28,6 +28,8 @@ def helpMessage() {
         -------------------
 
         QC:
+        ------
+
         --min_reads_per_sample <int>                Threshold to filter samples
         --is_fastq_rich <Boolean>                   Parameter to set input data type argument for nanoplot
                                                     specifying whether input fastq files are in 'rich' format.
@@ -38,6 +40,9 @@ def helpMessage() {
         Restrander:
         --run_restrander <Boolean>                  Run restrander
         --restrander_config <path>                  Path to restrander config json
+
+        ALIGNMENT:
+        ------
 
         Minimap2:
         --skip_save_minimap2_index <Boolean>        Whether to skip prebuilding Minimap2 index
@@ -56,6 +61,21 @@ def helpMessage() {
 
         Alignment additional:
         --filter_bam_mapped <Boolean>               Whether to filter alignment BAM to mapped reads only
+
+        ISOFORM DISCOVERY:
+        ------
+
+        --skip_isoform_discovery <Boolean>          Whether to skip running isoform discovery subworkflow
+        --isoform_discovery_method <string>         Method to use for isoform discovery (options: 'isoquant' or 'flair')
+
+        Isoquant:
+        --isoquant_complete_genedb <Boolean>        Whether to set option --complete_genedb
+        --isoquant_extra_opts <string>              Any additional command line options to pass to IsoQuant
+
+        Flair:
+        --flair_collapse_extra_opts <string>        Any additional command line options to pass to flair collapse module
+        --flair_align_reads_manifest <string>       Path to sample manifest for flair align module.
+
         """.stripIndent()
     )
 }

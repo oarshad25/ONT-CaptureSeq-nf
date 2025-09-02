@@ -26,7 +26,7 @@ dependencies managed using [Docker](https://www.docker.com) or [Apptainer](https
       * Input annotation for RSeQC is prepared using [ucsc-gtftogenepred](https://open.bioqueue.org/home/knowledge/showKnowledge/sig/ucsc-gtftogenepred) and [ucsc-genepredtobed](https://open.bioqueue.org/home/knowledge/showKnowledge/sig/ucsc-genepredtobed).
 9. Summarise mapping QC ([MultiQC](https://multiqc.info/docs/)).
 10. Filter out unmapped reads ([samtools](https://www.htslib.org/doc/)).
-11. Transcript reconstruction and quantification ([IsoQuant](https://ablab.github.io/IsoQuant/)).
+11. Transcript reconstruction and quantification ([IsoQuant](https://ablab.github.io/IsoQuant/) or [FLAIR](https://flair.readthedocs.io/en/latest/index.html)).
 
 ## Getting ONT-CaptureSeq-nf
 ```bash
@@ -171,6 +171,12 @@ Command-line options for Minimap2 alignment. See [minimap2 options](https://lh3.
 | `skip_rseqc` | boolean | skip read QC with RSeQC | false   |
 
 #### Isoform Discovery and Quantification
+
+| Parameter                  | Type    | Description                                                                       | Default      |
+| -------------------------- | ------- | --------------------------------------------------------------------------------- | ------------ |
+| `skip_isoform_discovery`   | boolean | Whether to skip running isoform discovery subworkflow                             | false        |
+| `isoform_discovery_method` | string  | Which method to use for isoform discovery. Options are `"isoquant"` or `"flair"`. | `"isoquant"` |
+
 
 ##### IsoQuant
 
