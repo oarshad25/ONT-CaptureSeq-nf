@@ -122,6 +122,7 @@ workflow ALIGNMENT {
     rseqc_read_dup_pos_xls_ch = Channel.empty()
     rseqc_junc_anno_log_ch = Channel.empty()
     rseqc_junc_sat_rscript_ch = Channel.empty()
+    rseqc_infer_exp_ch = Channel.empty()
 
     // calculate read distribution of aligned reads with RSeQC if parameter 'skip_resqc' is set
     if (!skip_rseqc) {
@@ -139,6 +140,8 @@ workflow ALIGNMENT {
         rseqc_junc_anno_log_ch = RSEQC.out.junction_annotation_log
         // channel with rscripts for RSeQC junction saturation module
         rseqc_junc_sat_rscript_ch = RSEQC.out.junction_saturation_rscript
+        // channel with txt file containing results of infer_experiment module
+        rseqc_infer_exp_ch = RSEQC.out.infer_experiment_txt
     }
 
     /*
@@ -164,4 +167,5 @@ workflow ALIGNMENT {
     rseqc_read_dup_pos_xls = rseqc_read_dup_pos_xls_ch // RSeQC read duplication calculation excel file based on mapping position [val(meta), path(read_dup_pos_xls_file)] or Channel.empty(), if skip_rseqc
     rseqc_junc_anno_log = rseqc_junc_anno_log_ch // RSeQC junction annotation module logs [val(meta), path(junc_anno_log)] or Channel.empty(), if skip_rseqc
     rseqc_junc_sat_rscript = rseqc_junc_sat_rscript_ch // RSeQC junction annotation module logs [val(meta), path(junc_anno_log)] or Channel.empty(), if skip_rseqc
+    rseqc_infer_exp = rseqc_infer_exp_ch // RSeQC infer experiment module result [val(meta) path(infer_exp_txt)] or Channel.empty(), if skip_rseqc
 }

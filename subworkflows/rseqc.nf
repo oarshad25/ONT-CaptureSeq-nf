@@ -6,7 +6,7 @@
 Use RSeQC on aligned reads. This subworkflow takes the aligned reads
 (sorted and indexed BAMs) and input reference GTF and runs the RSeqC modules
 bam_stat.py, read_gc.py, read_distribution.py, read_duplication.py,
-junction_annotation.py and junction_saturation.py
+junction_annotation.py, junction_saturation.py and infer_experiment.py
 
 * First it converts the input GTF to genePred by using UCSC's
   gtfToGenePred utility.
@@ -20,6 +20,8 @@ junction_annotation.py and junction_saturation.py
 * Module junction_annotation.py is used to compare detected splice junctions to reference
 * Module junction_saturation.py is used to determine if sequencing depth is deep enough
   to perform alternative splicing analysis
+* Module infer_experiment.py is used to infer strandedness, guess how RNA-seq experiment
+  was configured
 */
 workflow RSEQC {
     take:
@@ -39,6 +41,7 @@ workflow RSEQC {
     RSEQC_READ_DUPLICATION(bambai, rseqc_bed_ch)
     RSEQC_JUNCTION_ANNOTATION(bambai, rseqc_bed_ch)
     RSEQC_JUNCTION_SATURATION(bambai, rseqc_bed_ch)
+    RSEQC_INFER_EXPERIMENT(bambai, rseqc_bed_ch)
 
     emit:
     bam_stat_txt = RSEQC_BAM_STAT.out.txt // [val(meta), path(txt)]
@@ -47,6 +50,7 @@ workflow RSEQC {
     read_duplication_pos_xls = RSEQC_READ_DUPLICATION.out.pos_xls // [val(meta), path(xls)]
     junction_annotation_log = RSEQC_JUNCTION_ANNOTATION.out.log // [val(meta), path(log)]
     junction_saturation_rscript = RSEQC_JUNCTION_SATURATION.out.rscript // [val(meta), path(rscript)]
+    infer_experiment_txt = RSEQC_INFER_EXPERIMENT.out.txt // [val(meta), path(txt)]
 }
 
 // use UCSC's gtfToGenePred to convert a GTF file to genePred
@@ -269,5 +273,34 @@ process RSEQC_JUNCTION_SATURATION {
         -i ${bam} \\
         -r ${bed} \\
         -o ${meta.id}
+    """
+}
+
+// use RSeQC to infer strandedness
+process RSEQC_INFER_EXPERIMENT {
+    tag "${meta.id}"
+    label 'single'
+
+    conda "bioconda rseqc=5.0.4"
+    container "${workflow.containerEngine == 'apptainer'
+        ? 'https://depot.galaxyproject.org/singularity/rseqc:5.0.4--pyhdfd78af_0'
+        : 'quay.io/biocontainers/rseqc:5.0.4--pyhdfd78af_0'}"
+
+    input:
+    // sorted and indexed bam file
+    tuple val(meta), path(bam), path(bai)
+
+    // bed file output from UCSC utilities
+    path bed
+
+    output:
+    tuple val(meta), path("${meta.id}.infer_experiment.txt"), emit: txt
+
+    script:
+    """
+    infer_experiment.py \\
+        -i ${bam} \\
+        -r ${bed} \\
+        > ${meta.id}.infer_experiment.txt
     """
 }
