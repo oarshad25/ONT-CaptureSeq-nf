@@ -243,6 +243,9 @@ workflow {
     // nanostats input channel for multiQC
     multiqc_alignment_nanostats_ch = ALIGNMENT.out.nanostats.collect { it -> it[1] }
 
+    // channel with text files containing RSeQC bam stats
+    multiqc_rseqc_bam_stat_ch = ALIGNMENT.out.rseqc_bam_stat.collect { it -> it[1] }.ifEmpty([])
+
     // channel with text files containing RSeQC read distribution calculations
     multiqc_rseqc_read_dist_ch = ALIGNMENT.out.rseqc_read_dist.collect { it -> it[1] }.ifEmpty([])
 
@@ -259,6 +262,7 @@ workflow {
     multiqc_alignment_input_files_ch = multiqc_flagstat_ch
         .mix(
             multiqc_alignment_nanostats_ch,
+            multiqc_rseqc_bam_stat_ch,
             multiqc_rseqc_read_dist_ch,
             multiqc_rseqc_read_dup_ch,
             multiqc_rseqc_junc_anno_ch,

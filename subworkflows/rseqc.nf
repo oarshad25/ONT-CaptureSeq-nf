@@ -11,6 +11,7 @@ read_distribution.py, junction_annotation.py, junction_saturation.py
   gtfToGenePred utility.
 * The genePred is then converted to a BED using UCSC's genePredToBed. The reference
   gene model BED file is then used by the RSeQC modules to calculate various statistics:
+* RSeQC script bam_stat.py is used to summarise mapping statistics
 * RSeQC module read_distribution.py is used to calculate read distribution
   of mapped reads over genomic features.
 * read_duplication.py is used to calculate read duplication rate based on mapping position
@@ -30,12 +31,14 @@ workflow RSEQC {
     UCSC_GENEPRED_TO_BED(genepred_ch)
     rseqc_bed_ch = UCSC_GENEPRED_TO_BED.out.bed
 
+    RSEQC_BAM_STAT(bambai)
     RSEQC_READ_DISTRIBUTION(bambai, rseqc_bed_ch)
     RSEQC_READ_DUPLICATION(bambai, rseqc_bed_ch)
     RSEQC_JUNCTION_ANNOTATION(bambai, rseqc_bed_ch)
     RSEQC_JUNCTION_SATURATION(bambai, rseqc_bed_ch)
 
     emit:
+    bam_stat_txt = RSEQC_BAM_STAT.out.txt // [val(meta), path(txt)]
     read_distribution_txt = RSEQC_READ_DISTRIBUTION.out.txt // [val(meta), path(txt)]
     read_duplication_pos_xls = RSEQC_READ_DUPLICATION.out.pos_xls // [val(meta), path(xls)]
     junction_annotation_log = RSEQC_JUNCTION_ANNOTATION.out.log // [val(meta), path(log)]
@@ -85,6 +88,31 @@ process UCSC_GENEPRED_TO_BED {
     genePredToBed \\
         ${genepred}  \\
         ${genepred.simpleName}.bed
+    """
+}
+
+// use RSeQC to summarise mapping statistics
+process RSEQC_BAM_STAT {
+    tag "${meta.id}"
+    label 'single'
+
+    conda "bioconda rseqc=5.0.4"
+    container "${workflow.containerEngine == 'apptainer'
+        ? 'https://depot.galaxyproject.org/singularity/rseqc:5.0.4--pyhdfd78af_0'
+        : 'quay.io/biocontainers/rseqc:5.0.4--pyhdfd78af_0'}"
+
+    input:
+    // sorted and indexed bam file
+    tuple val(meta), path(bam), path(bai)
+
+    output:
+    tuple val(meta), path("${meta.id}.bam_stat.txt"), emit: txt
+
+    script:
+    """
+    bam_stat.py \\
+        -i ${bam} \\
+        > ${meta.id}.bam_stat.txt
     """
 }
 
