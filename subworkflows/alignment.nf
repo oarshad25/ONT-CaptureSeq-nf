@@ -117,6 +117,7 @@ workflow ALIGNMENT {
 
     //initialise empty channel to contain rseqc module outputs
     rseqc_bam_stat_ch = Channel.empty()
+    rseqc_read_gc_xls_ch = Channel.empty()
     rseqc_read_dist_ch = Channel.empty()
     rseqc_read_dup_pos_xls_ch = Channel.empty()
     rseqc_junc_anno_log_ch = Channel.empty()
@@ -128,6 +129,8 @@ workflow ALIGNMENT {
         RSEQC(SAMTOOLS.out.bambai, annotation)
         // channel with text files containing bam summary statistics
         rseqc_bam_stat_ch = RSEQC.out.bam_stat_txt
+        // channel with xls files containing read GC content calculations
+        rseqc_read_gc_xls_ch = RSEQC.out.read_gc_xls
         // channel with text files containing read distribution calculations
         rseqc_read_dist_ch = RSEQC.out.read_distribution_txt
         // channel with xls files containing read duplication rate from mapping position of reads
@@ -156,6 +159,7 @@ workflow ALIGNMENT {
     cramino_stats = CRAMINO.out.stats_txt // cramino bam stats [val(meta), path(cramino_stat_file)]
     nanostats = NANOPLOT.out.txt // nanostats [val(meta), path(nanostat_file)]
     rseqc_bam_stat = rseqc_bam_stat_ch // RSeQC bam summary statistics [val(meta), path(bam_stat_file)] or Channel.empty(), if skip_rseqc
+    rseqc_read_gc_xls = rseqc_read_gc_xls_ch // RSeQC read GC content calculation xls file [val(meta), path(read_gc_xls)] or Channel.empty(), if skip_rseqc
     rseqc_read_dist = rseqc_read_dist_ch // RSeQC read distribution calculations [val(meta), path(read_dist_file)] or Channel.empty(), if skip_rseqc
     rseqc_read_dup_pos_xls = rseqc_read_dup_pos_xls_ch // RSeQC read duplication calculation excel file based on mapping position [val(meta), path(read_dup_pos_xls_file)] or Channel.empty(), if skip_rseqc
     rseqc_junc_anno_log = rseqc_junc_anno_log_ch // RSeQC junction annotation module logs [val(meta), path(junc_anno_log)] or Channel.empty(), if skip_rseqc

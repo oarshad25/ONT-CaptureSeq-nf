@@ -246,10 +246,13 @@ workflow {
     // channel with text files containing RSeQC bam stats
     multiqc_rseqc_bam_stat_ch = ALIGNMENT.out.rseqc_bam_stat.collect { it -> it[1] }.ifEmpty([])
 
+    // channel with files containing RSeQC read GC content calculations
+    multiqc_rseqc_read_gc_ch = ALIGNMENT.out.rseqc_read_gc_xls.collect { it -> it[1] }.ifEmpty([])
+
     // channel with text files containing RSeQC read distribution calculations
     multiqc_rseqc_read_dist_ch = ALIGNMENT.out.rseqc_read_dist.collect { it -> it[1] }.ifEmpty([])
 
-    // channel with text files containing RSeQC read duplication calculations based on mapping position
+    // channel with files containing RSeQC read duplication calculations based on mapping position
     multiqc_rseqc_read_dup_ch = ALIGNMENT.out.rseqc_read_dup_pos_xls.collect { it -> it[1] }.ifEmpty([])
 
     // channel with text files containing RSeQC junction annotation module logs
@@ -263,6 +266,7 @@ workflow {
         .mix(
             multiqc_alignment_nanostats_ch,
             multiqc_rseqc_bam_stat_ch,
+            multiqc_rseqc_read_gc_ch,
             multiqc_rseqc_read_dist_ch,
             multiqc_rseqc_read_dup_ch,
             multiqc_rseqc_junc_anno_ch,

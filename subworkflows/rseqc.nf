@@ -5,13 +5,15 @@
 
 Use RSeQC on aligned reads. This subworkflow takes the aligned reads
 (sorted and indexed BAMs) and input reference GTF and runs the RSeqC modules
-read_distribution.py, junction_annotation.py, junction_saturation.py
+bam_stat.py, read_gc.py, read_distribution.py, read_duplication.py,
+junction_annotation.py and junction_saturation.py
 
 * First it converts the input GTF to genePred by using UCSC's
   gtfToGenePred utility.
 * The genePred is then converted to a BED using UCSC's genePredToBed. The reference
   gene model BED file is then used by the RSeQC modules to calculate various statistics:
 * RSeQC script bam_stat.py is used to summarise mapping statistics
+* RSeQC script read_gc.py is used to calculate GC content distribution of reads
 * RSeQC module read_distribution.py is used to calculate read distribution
   of mapped reads over genomic features.
 * read_duplication.py is used to calculate read duplication rate based on mapping position
@@ -32,6 +34,7 @@ workflow RSEQC {
     rseqc_bed_ch = UCSC_GENEPRED_TO_BED.out.bed
 
     RSEQC_BAM_STAT(bambai)
+    RSEQC_READ_GC(bambai)
     RSEQC_READ_DISTRIBUTION(bambai, rseqc_bed_ch)
     RSEQC_READ_DUPLICATION(bambai, rseqc_bed_ch)
     RSEQC_JUNCTION_ANNOTATION(bambai, rseqc_bed_ch)
@@ -39,6 +42,7 @@ workflow RSEQC {
 
     emit:
     bam_stat_txt = RSEQC_BAM_STAT.out.txt // [val(meta), path(txt)]
+    read_gc_xls = RSEQC_READ_GC.out.xls // [val(meta), path(xls)]
     read_distribution_txt = RSEQC_READ_DISTRIBUTION.out.txt // [val(meta), path(txt)]
     read_duplication_pos_xls = RSEQC_READ_DUPLICATION.out.pos_xls // [val(meta), path(xls)]
     junction_annotation_log = RSEQC_JUNCTION_ANNOTATION.out.log // [val(meta), path(log)]
@@ -113,6 +117,33 @@ process RSEQC_BAM_STAT {
     bam_stat.py \\
         -i ${bam} \\
         > ${meta.id}.bam_stat.txt
+    """
+}
+
+// use RSeQC to compute GC content distribution of reads
+process RSEQC_READ_GC {
+    tag "${meta.id}"
+    label 'single'
+
+    conda "bioconda rseqc=5.0.4"
+    container "${workflow.containerEngine == 'apptainer'
+        ? 'https://depot.galaxyproject.org/singularity/rseqc:5.0.4--pyhdfd78af_0'
+        : 'quay.io/biocontainers/rseqc:5.0.4--pyhdfd78af_0'}"
+
+    input:
+    // sorted and indexed bam file
+    tuple val(meta), path(bam), path(bai)
+
+    output:
+    tuple val(meta), path("*.xls"), emit: xls
+    tuple val(meta), path("*.r"), emit: rscript, optional: true
+    tuple val(meta), path("*.pdf"), emit: pdf, optional: true
+
+    script:
+    """
+    read_GC.py \\
+        -i ${bam} \\
+        -o ${meta.id}
     """
 }
 
