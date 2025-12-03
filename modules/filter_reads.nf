@@ -15,6 +15,9 @@ process FILTER_READS {
     // filter out reads shorter than min_lenth
     val min_length
 
+    // filter out reads longer than max_length
+    val max_length
+
     // filter out reads with an average quality below min_qual
     val min_qual
 
@@ -26,6 +29,7 @@ process FILTER_READS {
     seqkit seq ${fastq} \\
         --out-file "${meta.id}.filtered.fastq" \\
         --min-len ${min_length} \\
+        --max-len ${max_length} \\
         --min-qual ${min_qual}
     """
 }

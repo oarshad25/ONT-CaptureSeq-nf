@@ -128,6 +128,7 @@ Options for configuring steps/tools in the workflow
 | `is_fastq_rich`        | boolean | Used in NanoPlot. Whether input is a rich fastq with additional information regarding ONT run (concerning channel and time). Used to set input data source argument for nanoplot          | false   |
 | `skip_read_filtering`  | boolean | Skip filtering of reads based on length and average quality                                                                                                                               | false   |
 | `min_length`           | integer | Minimum read length threshold. Reads below this length are filtered out                                                                                                                   | 100     |
+| `max_length`           | integer | Maximum read length threshold. Reads longer than this length are filtered out                                                                                                             | 25000   |
 | `min_qual`             | float   | Average read quality threshold. Reads below this threshold are filtered out                                                                                                               | 7       |
 
 #### Restrander (read orientation)
