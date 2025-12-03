@@ -1,8 +1,11 @@
 /*
-* Use samtools to get mapped reads from input BAM
+* Use samtools to filter out from input BAM (alignments):
+* - Secondary alignments
+* - Supplementary alignments
+* - Unmapped reads
 */
 
-process FILTER_BAM_MAPPED {
+process FILTER_ALIGNMENTS {
     tag "${meta.id}"
     label 'low'
 
@@ -23,8 +26,8 @@ process FILTER_BAM_MAPPED {
 
     script:
     """
-    # filter out unmapped reads (get mapped reads only)
-    samtools view -@ ${task.cpus} -bh -F 4 ${bam} | \\
+    # filter out non-primary (secondary) and supplementary alignments and unmapped reads
+    samtools view -@ ${task.cpus} -bh -F 2308 ${bam} | \\
     samtools sort -@ ${task.cpus} -o ${meta.id}.filtered.bam
 
     # index filtered BAM

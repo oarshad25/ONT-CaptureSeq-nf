@@ -8,7 +8,7 @@ Alignment subworkflow
   and generate alignment statistics with flagstat
 * Generate aligned reads length and quality histograms with seqkit bam
 * Optionally calculate read statistics with RSeQC
-* Optionally filter alignments to mapped reads only
+* Optionally filter alignments to primary only (remove secondary, supplementary and unmapped reads)
 */
 
 include { MINIMAP2_INDEX } from "../modules/minimap2_index"
@@ -17,7 +17,7 @@ include { MINIMAP2 } from "../modules/minimap2"
 include { SAMTOOLS } from "../modules/samtools"
 include { CRAMINO } from "../modules/cramino"
 include { NANOPLOT } from "../modules/nanoplot"
-include { FILTER_BAM_MAPPED } from "../modules/filter_bam_mapped"
+include { FILTER_ALIGNMENTS } from "../modules/filter_alignments"
 
 include { RSEQC } from "./rseqc"
 
@@ -39,7 +39,7 @@ workflow ALIGNMENT {
     minimap2_junc_bonus
     minimap2_extra_opts
     skip_rseqc // Boolean, whether to skip RSeQC read distribution calculations
-    filter_bam_mapped // Boolean, whether to get mapped reads only from aligned BAM
+    filter_alignments // Boolean, whether to filter alignment BAMs to remove secondary, supplementary and unmapped reads
 
     main:
 
@@ -145,12 +145,12 @@ workflow ALIGNMENT {
     }
 
     /*
-    * Optionally filter out unmapped reads
+    * Optionally filter out secondary, supplementray and unmapped reads
     */
 
-    if (filter_bam_mapped) {
-        FILTER_BAM_MAPPED(SAMTOOLS.out.bambai)
-        bambai_ch = FILTER_BAM_MAPPED.out.filtered_bambai
+    if (filter_alignments) {
+        FILTER_ALIGNMENTS(SAMTOOLS.out.bambai)
+        bambai_ch = FILTER_ALIGNMENTS.out.filtered_bambai
     }
     else {
         bambai_ch = SAMTOOLS.out.bambai

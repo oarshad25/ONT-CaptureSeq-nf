@@ -25,7 +25,7 @@ dependencies managed using [Docker](https://www.docker.com) or [Apptainer](https
     * Optionally [RSeQC](https://rseqc.sourceforge.net).
       * Input annotation for RSeQC is prepared using [ucsc-gtftogenepred](https://open.bioqueue.org/home/knowledge/showKnowledge/sig/ucsc-gtftogenepred) and [ucsc-genepredtobed](https://open.bioqueue.org/home/knowledge/showKnowledge/sig/ucsc-genepredtobed).
 9. Summarise mapping QC ([MultiQC](https://multiqc.info/docs/)).
-10. Filter out unmapped reads ([samtools](https://www.htslib.org/doc/)).
+10. Filter out unmapped, secondary and supplementary reads ([samtools](https://www.htslib.org/doc/)).
 11. Transcript reconstruction and quantification ([IsoQuant](https://ablab.github.io/IsoQuant/) or [FLAIR](https://flair.readthedocs.io/en/latest/index.html)).
 
 ## Getting ONT-CaptureSeq-nf
@@ -145,7 +145,7 @@ Options for configuring steps/tools in the workflow
 | Parameter                  | Type    | Description                                                                                                                                                                                   | Default |
 | -------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
 | `alignment_use_annotation` | boolean | Minimap2 can optionally take annotated genes as input. This parameter selects whether to use reference annotation in Minimap2 alignment as input to prioritise on annotated splice junctions. | false   |
-| `filter_bam_mapped`        | boolean | Whether to filter aligned bam to mapped reads only i.e. whether to filter out unmapped reads from alignments                                                                                  | true    |
+| `filter_alignments`        | boolean | Whether to filter alignment bams to remove secondary, supplementary and unmapped reads                                                                                                        | true    |
 
 ##### MiniMap2
 
