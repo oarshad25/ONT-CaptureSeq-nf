@@ -23,7 +23,6 @@ process NANOCOMP {
 
     output:
     path "*.html", emit: html
-    path "*.png", emit: png
     path "*NanoStats.txt", emit: stats_txt
 
     script:
@@ -46,6 +45,7 @@ process NANOCOMP {
     """
     NanoComp \\
         --threads ${task.cpus} \\
+        --make_no_static \\
         ${input_type_opt} ${inputfiles} \\
         --names ${names}
     """

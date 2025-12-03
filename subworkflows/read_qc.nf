@@ -15,16 +15,14 @@ workflow READ_QC {
     main:
     NANOPLOT(reads_ch, step, is_fastq_rich)
 
-    // *remove nanocomp process*
-    // TODO: NanoComp hangs on BMRC due to no internet when run from container, add conda
     // sort the reads channel by sample id
     // sorting is done so that nanocomp report is sorted by sample id
-    // reads_ch
-    //     .toSortedList { tup1, tup2 -> tup1[0].id <=> tup2[0].id }
-    //     .flatMap()
-    //     .set { sorted_reads_ch }
+    reads_ch
+        .toSortedList { tup1, tup2 -> tup1[0].id <=> tup2[0].id }
+        .flatMap()
+        .set { sorted_reads_ch }
 
-    // NANOCOMP(sorted_reads_ch.collect { it -> it[1] }, step)
+    NANOCOMP(sorted_reads_ch.collect { it -> it[1] }, step)
 
     def multiqc_input_ch = NANOPLOT.out.txt.collect { it -> it[1] }
 
