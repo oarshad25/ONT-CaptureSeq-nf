@@ -4,14 +4,11 @@
  * Alignment QC with RSeQC
 
 Use RSeQC on aligned reads. This subworkflow takes the aligned reads
-(sorted and indexed BAMs) and input reference GTF and runs the RSeqC modules
+(sorted and indexed BAMs) and input reference gene model bed and runs the RSeqC modules
 bam_stat.py, read_gc.py, read_distribution.py, read_duplication.py,
 junction_annotation.py, junction_saturation.py and infer_experiment.py
+to calculate various statistics
 
-* First it converts the input GTF to genePred by using UCSC's
-  gtfToGenePred utility.
-* The genePred is then converted to a BED using UCSC's genePredToBed. The reference
-  gene model BED file is then used by the RSeQC modules to calculate various statistics:
 * RSeQC script bam_stat.py is used to summarise mapping statistics
 * RSeQC script read_gc.py is used to calculate GC content distribution of reads
 * RSeQC module read_distribution.py is used to calculate read distribution
@@ -26,15 +23,9 @@ junction_annotation.py, junction_saturation.py and infer_experiment.py
 workflow RSEQC {
     take:
     bambai // sorted and indexed aligned reads: [val(meta), path(bam), path(bai)]
-    gtf // path/to/gtf: path(gtf)
+    rseqc_bed_ch // path/to/bed: path(bed)
 
     main:
-    UCSC_GTF_TO_GENEPRED(gtf)
-    genepred_ch = UCSC_GTF_TO_GENEPRED.out.genepred
-
-    UCSC_GENEPRED_TO_BED(genepred_ch)
-    rseqc_bed_ch = UCSC_GENEPRED_TO_BED.out.bed
-
     RSEQC_BAM_STAT(bambai)
     RSEQC_READ_GC(bambai)
     RSEQC_READ_DISTRIBUTION(bambai, rseqc_bed_ch)
@@ -51,52 +42,6 @@ workflow RSEQC {
     junction_annotation_log = RSEQC_JUNCTION_ANNOTATION.out.log // [val(meta), path(log)]
     junction_saturation_rscript = RSEQC_JUNCTION_SATURATION.out.rscript // [val(meta), path(rscript)]
     infer_experiment_txt = RSEQC_INFER_EXPERIMENT.out.txt // [val(meta), path(txt)]
-}
-
-// use UCSC's gtfToGenePred to convert a GTF file to genePred
-process UCSC_GTF_TO_GENEPRED {
-    label "single"
-
-    conda "bioconda ucsc-gtftogenepred=469"
-    container "${workflow.containerEngine == 'apptainer'
-        ? 'https://depot.galaxyproject.org/singularity/ucsc-gtftogenepred:469--h664eb37_1'
-        : 'quay.io/biocontainers/ucsc-gtftogenepred:469--h664eb37_1'}"
-
-    input:
-    path gtf
-
-    output:
-    path "*.genepred", emit: genepred
-
-    script:
-    """
-    gtfToGenePred \\
-        ${gtf}  \\
-        ${gtf.simpleName}.genepred
-    """
-}
-
-// use UCSC's genePredToBed to convert genepred to bed
-process UCSC_GENEPRED_TO_BED {
-    label "single"
-
-    conda "bioconda ucsc-genepredtobed=469"
-    container "${workflow.containerEngine == 'apptainer'
-        ? 'https://depot.galaxyproject.org/singularity/ucsc-genepredtobed:469--h664eb37_1'
-        : 'quay.io/biocontainers/ucsc-genepredtobed:469--h664eb37_1'}"
-
-    input:
-    path genepred
-
-    output:
-    path "*.bed", emit: bed
-
-    script:
-    """
-    genePredToBed \\
-        ${genepred}  \\
-        ${genepred.simpleName}.bed
-    """
 }
 
 // use RSeQC to summarise mapping statistics

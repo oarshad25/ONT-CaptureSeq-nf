@@ -100,19 +100,20 @@ workflow {
     * Setup reference channels
     */
 
-    // replace reference channel creation below with subworkflow PREPARE_REFERENCE_FILES
-    // create reference genome fasta channel
-    //genome_ch = file(params.genome, checkIfExists: true)
+    // initialise reference genome fasta channel
+    genome_ch = file(params.genome, checkIfExists: true)
 
-    // create reference genome fasta channel
-    //annotation_ch = file(params.annotation, checkIfExists: true)
+    // initialise reference genome annotation gtf channel
+    annotation_ch = file(params.annotation, checkIfExists: true)
 
-    PREPARE_REFERENCE_FILES(params.genome, params.annotation)
+    PREPARE_REFERENCE_FILES(genome_ch, annotation_ch)
 
     // reference genome fasta channel
     genome_ch = PREPARE_REFERENCE_FILES.out.genome_ch
-    // reference annotation channel
+    // reference annotation channel (gtf)
     annotation_ch = PREPARE_REFERENCE_FILES.out.annotation_ch
+    // reference annotation channel as BED
+    annotation_bed_ch = PREPARE_REFERENCE_FILES.out.annotation_bed_ch
 
     /*
     * CONCATENATE FQS PER SAMPLE
@@ -214,6 +215,7 @@ workflow {
         processed_reads_ch,
         genome_ch,
         annotation_ch,
+        annotation_bed_ch,
         params.alignment_use_annotation,
         params.skip_save_minimap2_index,
         params.minimap2_indexing_extra_opts,

@@ -25,7 +25,8 @@ workflow ALIGNMENT {
     take:
     reads // [ val(meta), path(fasta) ]
     genome // path to genome fasta
-    annotation // path to annotation gtf used by RSeqC and optionally Minimap2
+    annotation // path to annotation gtf used by Minimap2
+    rseqc_bed // path to annotation in bed format to be used by RSeQC
     alignment_use_annotation // Boolean, whether to use gene annotation as input to Minimap2 to prioritise on annotated splice junctions
     skip_save_minimap2_index // Boolean, skip saving the minimap2 index. This flag controls whether to run indexing seperately
     minimap2_indexing_extra_opts // string, any additional options to pass to indexing process
@@ -127,7 +128,7 @@ workflow ALIGNMENT {
     // calculate read distribution of aligned reads with RSeQC if parameter 'skip_resqc' is set
     if (!skip_rseqc) {
         // run RSeQC subworkflow
-        RSEQC(SAMTOOLS.out.bambai, annotation)
+        RSEQC(SAMTOOLS.out.bambai, rseqc_bed)
         // channel with text files containing bam summary statistics
         rseqc_bam_stat_ch = RSEQC.out.bam_stat_txt
         // channel with xls files containing read GC content calculations
