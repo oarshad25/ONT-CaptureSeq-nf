@@ -17,7 +17,7 @@ include { MERGE_BAMS } from "./modules/merge_bams"
 
 // include subworkflows
 include { PREPARE_REFERENCE_FILES } from "./subworkflows/prepare_reference_files"
-include { READ_QC as RAW_READ_QC ; READ_QC as FILTERED_READ_QC ; READ_QC as RESTRANDED_READ_QC } from "./subworkflows/read_qc"
+include { READ_QC as RAW_READ_QC ; READ_QC as FILTERED_READ_QC ; READ_QC as RESTRANDED_READ_QC ; READ_QC as ALIGNED_SUBSET_READ_QC } from "./subworkflows/read_qc"
 include { ALIGNMENT } from "./subworkflows/alignment"
 include { SUBSET_ALIGNMENTS } from "./subworkflows/subset_alignments.nf"
 include { FLAIR } from "./subworkflows/flair"
@@ -289,13 +289,22 @@ workflow {
     */
 
     // generate a subset of the alignments to genes in a given list if provided
+    // QC the subset reads to get handle on statistics of reads mapping to genes of interest
 
     if (params.genelist_to_subset_alignments) {
 
         // create channel from input genelist
         genelist_to_subset_alignments_ch = file(params.genelist_to_subset_alignments, checkIfExists: true)
 
+        // subset alignments to genes in list
         SUBSET_ALIGNMENTS(aligned_reads_ch, annotation_ch, genelist_to_subset_alignments_ch)
+
+        // create a channel of BAMs to run QC of requisite cardinality
+        SUBSET_ALIGNMENTS.out.bambai
+            .map { meta, bam, _bai -> tuple(meta, bam) }
+            .set { subset_alignments_bam_ch }
+
+        ALIGNED_SUBSET_READ_QC(subset_alignments_bam_ch, "aligned_subset", false)
     }
 
     /*

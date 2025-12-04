@@ -28,6 +28,12 @@ workflow SUBSET_ALIGNMENTS {
 
     // subset input alignment bam to regions in BED
     SUBSET_BAM_WITH_BED(bambai, bed_ch)
+
+    // reads aligned to genes of interest
+    bambai_subset_ch = SUBSET_BAM_WITH_BED.out.bambai_subset
+
+    emit:
+    bambai = bambai_subset_ch // reads aligned to genes of interest: [val(meta), path(bam), path(bai)]
 }
 
 // take the annotation GTF and genelist and create a BED file
@@ -93,7 +99,7 @@ process SUBSET_BAM_WITH_BED {
 
     output:
     // filtered and indexed bam file overlapping regions specified in input bed
-    tuple val(meta), path("${meta.id}.subset.bam"), path("${meta.id}.subset.bam.bai"), emit: subset_bambai
+    tuple val(meta), path("${meta.id}.subset.bam"), path("${meta.id}.subset.bam.bai"), emit: bambai_subset
 
     script:
     """

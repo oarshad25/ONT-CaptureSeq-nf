@@ -8,7 +8,7 @@ include { MULTIQC } from "../modules/multiqc"
 
 workflow READ_QC {
     take:
-    reads_ch // tuple val(meta), path(fastq); queue channel with tuples of metamap and fastq
+    reads_ch // tuple val(meta), path(read); queue channel with tuples of metamap and fastq/bam
     step // string. Allows us to publish seperate invocations of workflow for e.g on raw or filtered data, in different directories
     is_fastq_rich // Boolean. Used in nanoplot process to set input file type argument, whether input fastq is in 'rich' format
 
