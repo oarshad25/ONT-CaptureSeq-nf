@@ -23,13 +23,14 @@ dependencies managed using [Docker](https://www.docker.com) or [Apptainer](https
     * Optionally prebuild minimap2 genome index.
     * Optionally use reference annotation to prioritise on known splice junctions.
 8. Sort, index alignments and generate alignment statistics ([samtools](https://www.htslib.org/doc/))
-9.  Additional QC of aligned reads
+9. Additional QC of aligned reads
     * [Cramino](https://github.com/wdecoster/cramino).
     * [NanoPlot](https://github.com/wdecoster/NanoPlot).
     * Optionally [RSeQC](https://rseqc.sourceforge.net).
 10. Summarise mapping QC ([MultiQC](https://multiqc.info/docs/)).
 11. Filter out unmapped, secondary and supplementary reads ([samtools](https://www.htslib.org/doc/)).
-12. Transcript reconstruction and quantification ([IsoQuant](https://ablab.github.io/IsoQuant/) or [FLAIR](https://flair.readthedocs.io/en/latest/index.html)).
+12. Optionally, if a genelist of interest is provided, generate a subset of aligned reads to genes in the list.
+13. Transcript reconstruction and quantification ([IsoQuant](https://ablab.github.io/IsoQuant/) or [FLAIR](https://flair.readthedocs.io/en/latest/index.html)).
 
 ## Getting ONT-CaptureSeq-nf
 ```bash
@@ -145,10 +146,11 @@ Options for configuring steps/tools in the workflow
 
 ##### General Options
 
-| Parameter                  | Type    | Description                                                                                                                                                                                   | Default |
-| -------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| `alignment_use_annotation` | boolean | Minimap2 can optionally take annotated genes as input. This parameter selects whether to use reference annotation in Minimap2 alignment as input to prioritise on annotated splice junctions. | false   |
-| `filter_alignments`        | boolean | Whether to filter alignment bams to remove secondary, supplementary and unmapped reads                                                                                                        | true    |
+| Parameter                       | Type    | Description                                                                                                                                                                                   | Default |
+| ------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `alignment_use_annotation`      | boolean | Minimap2 can optionally take annotated genes as input. This parameter selects whether to use reference annotation in Minimap2 alignment as input to prioritise on annotated splice junctions. | false   |
+| `filter_alignments`             | boolean | Whether to filter alignment bams to remove secondary, supplementary and unmapped reads                                                                                                        | true    |
+| `genelist_to_subset_alignments` | string  | Path to optional file containing list of gene id's, one per line. If this file is provided, a subset of the filtered aligned bams is generated that overlaps genes in this list               |         |
 
 ##### MiniMap2
 

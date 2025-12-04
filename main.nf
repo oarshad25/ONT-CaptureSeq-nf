@@ -19,6 +19,7 @@ include { MERGE_BAMS } from "./modules/merge_bams"
 include { PREPARE_REFERENCE_FILES } from "./subworkflows/prepare_reference_files"
 include { READ_QC as RAW_READ_QC ; READ_QC as FILTERED_READ_QC ; READ_QC as RESTRANDED_READ_QC } from "./subworkflows/read_qc"
 include { ALIGNMENT } from "./subworkflows/alignment"
+include { SUBSET_ALIGNMENTS } from "./subworkflows/subset_alignments.nf"
 include { FLAIR } from "./subworkflows/flair"
 
 workflow {
@@ -282,6 +283,20 @@ workflow {
 
     // run MultiQC on aligned read statistics
     MULTIQC(multiqc_alignment_input_files_ch, "aligned")
+
+    /*
+    * GENERATE ALIGNMENT SUBSET
+    */
+
+    // generate a subset of the alignments to genes in a given list if provided
+
+    if (params.genelist_to_subset_alignments) {
+
+        // create channel from input genelist
+        genelist_to_subset_alignments_ch = file(params.genelist_to_subset_alignments, checkIfExists: true)
+
+        SUBSET_ALIGNMENTS(aligned_reads_ch, annotation_ch, genelist_to_subset_alignments_ch)
+    }
 
     /*
     * ISOFORM DISCOVERY
