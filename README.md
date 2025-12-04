@@ -31,7 +31,8 @@ dependencies managed using [Docker](https://www.docker.com) or [Apptainer](https
 11. Filter out unmapped, secondary and supplementary reads ([samtools](https://www.htslib.org/doc/)).
 12. Optionally, if a genelist of interest is provided, generate a subset of aligned reads to genes in the list.
     * QC metrics of subset of aligned reads to assess quality of reads mapping to genes of interest.
-13. Transcript reconstruction and quantification ([IsoQuant](https://ablab.github.io/IsoQuant/) or [FLAIR](https://flair.readthedocs.io/en/latest/index.html)).
+13. Generate gene level count matrix with [featureCounts](https://subread.sourceforge.net/featureCounts.html).
+14. Transcript reconstruction and quantification ([IsoQuant](https://ablab.github.io/IsoQuant/) or [FLAIR](https://flair.readthedocs.io/en/latest/index.html)).
 
 ## Getting ONT-CaptureSeq-nf
 ```bash

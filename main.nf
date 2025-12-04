@@ -11,6 +11,7 @@ include { CONCAT_FASTQ } from "./modules/concat_fastq"
 include { FILTER_READS } from "./modules/filter_reads"
 include { RESTRANDER } from "./modules/restrander"
 include { MULTIQC } from "./modules/multiqc"
+include { SUBREAD_FEATURECOUNTS } from "./modules/subread_featurecounts.nf"
 include { ISOQUANT } from "./modules/isoquant"
 include { ISOQUANT_VISUALIZE } from "./modules/isoquant_visualize"
 include { MERGE_BAMS } from "./modules/merge_bams"
@@ -306,6 +307,16 @@ workflow {
 
         ALIGNED_SUBSET_READ_QC(subset_alignments_bam_ch, "aligned_subset", false)
     }
+
+    /*
+    * Gene counts matrix with featurecounts
+    */
+
+    SUBREAD_FEATURECOUNTS(
+        aligned_reads_ch.collect { it -> it[1] },
+        aligned_reads_ch.collect { it -> it[2] },
+        annotation_ch,
+    )
 
     /*
     * ISOFORM DISCOVERY
