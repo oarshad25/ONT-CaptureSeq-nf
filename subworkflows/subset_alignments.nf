@@ -42,6 +42,8 @@ process CREATE_GENES_OF_INTEREST_BED {
     label "single"
     label "local_software"
 
+    publishDir "${params.outdir}/bam/genes_of_interest/", mode: "link"
+
     container "${workflow.containerEngine == 'apptainer'
         ? 'https://depot.galaxyproject.org/singularity/ubuntu:24.04'
         : 'quay.io/biocontainers/ubuntu:24.04'}"
