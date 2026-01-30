@@ -52,11 +52,11 @@ process CONCAT_FASTQ {
     label "single"
     label "local_software"
 
-    //publishDir "${params.outdir}/merged_reads", mode: 'link'
-
     container "${workflow.containerEngine == 'apptainer'
         ? 'https://depot.galaxyproject.org/singularity/ubuntu:24.04'
         : 'quay.io/biocontainers/ubuntu:24.04'}"
+
+    publishDir "${params.outdir}/fastq/raw", pattern: '*.merged.fastq', mode: 'link'
 
     input:
     // Reads to merge

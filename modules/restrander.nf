@@ -7,6 +7,7 @@ process RESTRANDER {
     container 'genomicpariscentre/restrander:1.1.1'
 
     publishDir "${params.outdir}/qc/full_length/restrander_stats", pattern: '*.json', mode: 'copy'
+    publishDir "${params.outdir}/fastq/full_length/", pattern: '*.restranded.fastq', mode: 'link'
 
     input:
     // input reads to restrand

@@ -8,6 +8,8 @@ process FILTER_READS {
         ? 'https://depot.galaxyproject.org/singularity/seqkit:2.9.0--h9ee0642_0'
         : 'quay.io/biocontainers/seqkit:2.9.0--h9ee0642_0'}"
 
+    publishDir "${params.outdir}/fastq/filtered", pattern: '*.filtered.fastq', mode: 'link'
+
     input:
     // input reads to filter
     tuple val(meta), path(fastq)
