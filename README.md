@@ -16,8 +16,9 @@ dependencies managed using [Docker](https://www.docker.com) or [Apptainer](https
 3. Raw read QC ([NanoPlot](https://github.com/wdecoster/NanoPlot), [MultiQC](https://multiqc.info/docs/)).
 4. Filter reads on length and quality ([seqkit seq](https://bioinf.shenwei.me/seqkit/usage/#seq); _optional_).
     * QC of filtered reads.
-5. Reorient reads ([restrander](https://github.com/mritchielab/restrander); _optional_).
-    * QC of reoriented reads.
+5. Preprocessing of cDNA reads with one of the following (_optional_):
+    * Identify, orient and trim full-length reads ([pychopper](https://github.com/epi2me-labs/pychopper))
+    * Reorient reads ([restrander](https://github.com/mritchielab/restrander)).
 6. Filter out any samples with small number of reads.
 7. Align reads to genome ([minimap2](https://github.com/lh3/minimap2))
     * Optionally prebuild minimap2 genome index.
@@ -35,20 +36,22 @@ dependencies managed using [Docker](https://www.docker.com) or [Apptainer](https
 14. Transcript reconstruction and quantification ([IsoQuant](https://ablab.github.io/IsoQuant/) or [FLAIR](https://flair.readthedocs.io/en/latest/index.html)).
 
 ## Getting ONT-CaptureSeq-nf
+
 ```bash
-$ git clone git@github.com:oarshad25/ONT-CaptureSeq-nf.git
-$ cd ONT-CaptureSeq-nf
+git clone git@github.com:oarshad25/ONT-CaptureSeq-nf.git
+cd ONT-CaptureSeq-nf
 ```
+
 ## Usage
 
 ```bash
-$ nextflow run main.nf --help
+nextflow run main.nf --help
 ```
 
 Example usage:
 
 ```bash
-$ nextflow run main.nf \
+nextflow run main.nf \
   -profile <docker/apptainer> \
   --samplesheet "path/to/samplesheet" \
   --genome "path/to/genome.fa" \
@@ -60,7 +63,7 @@ parameters through either editing the parameter configuration file [./conf/param
 or via Nextflow `-params-file` option:
 
 ```bash
-$ nextflow run main.nf -profile <docker/apptainer> -params-file params.json
+nextflow run main.nf -profile <docker/apptainer> -params-file params.json
 ```
 
 Can customise execution to the specific compute platform on which the pipeline is executed, by editing the `nextflow.config` file.
@@ -79,10 +82,10 @@ $ nextflow run main.nf \
 The workflow accepts either an input directory (specified via `--inputdir`)
 or a sample manifest (specified via `--samplesheet`).
 
-(a) *input directory:* Path to demultiplexed barcode directory, the directory
+(a) _input directory:_ Path to demultiplexed barcode directory, the directory
 containing one level of sub-directories which in turn contain FASTQ files
 
-```
+``` bash
 ─── inputdir
     ├── barcode01
     │   ├── reads0.fastq
@@ -97,12 +100,11 @@ containing one level of sub-directories which in turn contain FASTQ files
 
 OR
 
-(b) *sample manifest:* Path to sample sheet in csv format. The sample manifest should be a comma seperated values (.csv)
+(b) _sample manifest:_ Path to sample sheet in csv format. The sample manifest should be a comma seperated values (.csv)
 file and include at least two columns named `id` and `fastqdir`
 
-- the `id` column is the sample id for each sample/barcode
-- the `fastqdir` column is the path to the directory containing the fastq files for the barcode.
-
+* the `id` column is the sample id for each sample/barcode
+* the `fastqdir` column is the path to the directory containing the fastq files for the barcode.
 
 ### Pipeline parameters
 
@@ -121,7 +123,6 @@ The required parameters are as follows:
 | --------- | ------ | ---------------------------- | ------- |
 | `outdir`  | string | Output directory for results | results |
 
-
 ### Additional Options
 
 Options for configuring steps/tools in the workflow
@@ -137,11 +138,30 @@ Options for configuring steps/tools in the workflow
 | `max_length`           | integer | Maximum read length threshold. Reads longer than this length are filtered out                                                                                                             | 25000   |
 | `min_qual`             | float   | Average read quality threshold. Reads below this threshold are filtered out                                                                                                               | 7       |
 
-#### Restrander (read orientation)
+##### cDNA reads preprocessing
+
+Options for further preprocessing of cDNA reads.
 
 | Parameter           | Type    | Description                                | Default                                |
 | ------------------- | ------- | ------------------------------------------ | -------------------------------------- |
-| `run_restrander`    | boolean | Reorient reads with restrander             | false                                  |
+| `run_cdna_qc` | boolean       | Whether to preprocess reads using a cDNA readQC tool | true |
+| `cdna_qc_method` | boolean       | Which tool to use for cDNA read QC/preprocessing. Options are `"pychopper"` or `"restrander"`. | `pychopper` |
+
+###### Pychopper (full length reads)
+
+| Parameter           | Type    | Description                                | Default                                |
+| ------------------- | ------- | ------------------------------------------ | -------------------------------------- |
+| `pychopper_cdna_kit` | string  | kit name, pychopper -k option e.g. "PCS109" |  |
+| `pychopper_primer_fasta` | string | Path to primer sequences fasta, pychopper -b option |  |
+| `pychopper_backend` | string | Backend to be used by pychopper for identifying primers in input reads, pychopper -m option (phmm or edlib) | `"edlib"`|
+| `pychopper_extra_opts` | string | Any extra command line options to pass to pychopper e.g. `"-p"` to keep primers | |
+
+If neither `pychopper_cdna_kit` nor `pychopper_primer_fasta` is provided, pychopper default (kit PCS109) is used.
+
+###### Restrander (read orientation)
+
+| Parameter           | Type    | Description                                | Default                                |
+| ------------------- | ------- | ------------------------------------------ | -------------------------------------- |
 | `restrander_config` | string  | Path to Restrander configuration json file | `assets/restrander_config/PCB109.json` |
 
 #### Alignment
@@ -184,7 +204,6 @@ Command-line options for Minimap2 alignment. See [minimap2 options](https://lh3.
 | -------------------------- | ------- | --------------------------------------------------------------------------------- | ------------ |
 | `skip_isoform_discovery`   | boolean | Whether to skip running isoform discovery subworkflow                             | false        |
 | `isoform_discovery_method` | string  | Which method to use for isoform discovery. Options are `"isoquant"` or `"flair"`. | `"isoquant"` |
-
 
 ##### IsoQuant
 

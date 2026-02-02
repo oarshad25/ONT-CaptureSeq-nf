@@ -58,10 +58,23 @@ def checkParams() {
         error("Input directory: `${params.inputdir}` is empty")
     }
 
-    //if restrander is to be run, check config exists
+    // cDNA read processing params
+    if (params.run_cdna_qc) {
+        // check valid option is provided for isoform_discovery_method
+        if (params.cdna_qc_method != "pychopper" && params.cdna_qc_method != "restrander") {
+            error("Invalid option `${params.cdna_qc_method}` for parameter 'cdna_qc_method'. Valid parameter values are 'pychopper' or 'restrander'.")
+        }
 
-    if (params.run_restrander && !file(params.restrander_config).exists()) {
-        error("Specified restrander config: `${params.restrander}` does not exist.")
+        if (params.cdna_qc_method == "pychopper") {
+            if (params.pychopper_backend != "phmm" && params.pychopper_backend != "edlib") {
+                error("Invalid option `${params.pychopper_backend}` for parameter 'pychopper_backend'. Valid parameter values are 'phmm' or 'edlib'.")
+            }
+        }
+
+        // if restrander is to be run, check config exists
+        if (params.cdna_qc_method == "restrander" && !file(params.restrander_config).exists()) {
+            error("Specified restrander config: `${params.restrander}` does not exist.")
+        }
     }
 
     // check that no external junction bed file is provided for minimap via 'params.minimap2_junc_bed' if flag to use annotation gtf 'params.alignment_use_annotation' is set

@@ -10,6 +10,7 @@ include { findFastqFiles } from "./lib/utilities.nf"
 include { CONCAT_FASTQ } from "./modules/concat_fastq"
 include { FILTER_READS } from "./modules/filter_reads"
 include { RESTRANDER } from "./modules/restrander"
+include { PYCHOPPER } from "./modules/pychopper"
 include { MULTIQC } from "./modules/multiqc"
 include { SUBREAD_FEATURECOUNTS } from "./modules/subread_featurecounts.nf"
 include { ISOQUANT } from "./modules/isoquant"
@@ -179,28 +180,57 @@ workflow {
     }
 
     /*
-    * Restrand filtered reads
+    * cDNA preprocessing/QC. Preprocess cDNA reads with pychopper or restrander if specified
     */
 
-    // initialise restranded reads
-    full_length_reads_ch = filtered_reads_ch
+    // initialise output channel to upstream channel
+    qced_reads_ch = filtered_reads_ch
 
-    if (params.run_restrander) {
+    // initialise channel for multiqc stats files from cDNA QC step
+    multiqc_cdna_qc_stats_ch = Channel.empty()
 
-        // channel containing path to restrander config file
-        restrander_config_ch = file(params.restrander_config, checkIfExists: true)
+    // further QC for cDNA reads with pychopper or restrander
+    if (params.run_cdna_qc) {
 
-        // reorient reads with restrander
-        RESTRANDER(filtered_reads_ch, restrander_config_ch)
+        if (params.cdna_qc_method == "pychopper") {
 
-        full_length_reads_ch = RESTRANDER.out.full_length_reads
+            // channel containing path to pychopper primer fasta
+            pychopper_primer_fasta_ch = file(params.pychopper_primer_fasta, checkIfExists: true)
 
-        // QC on restranded reads
-        RESTRANDED_READ_QC(full_length_reads_ch, "full_length", params.is_fastq_rich)
+            // get full length reads with pychopper
+            PYCHOPPER(filtered_reads_ch, params.pychopper_cdna_kit, pychopper_primer_fasta_ch, params.pychopper_backend, params.pychopper_extra_opts)
+
+            full_length_reads_ch = PYCHOPPER.out.full_length_reads
+
+            // output qc'ed reads
+            qced_reads_ch = full_length_reads_ch
+
+            // stats file for multiqc
+            multiqc_cdna_qc_stats_ch = PYCHOPPER.out.stats.collect { it -> it[1] }
+        }
+        else if (params.cdna_qc_method == "restrander") {
+
+            // channel containing path to restrander config file
+            restrander_config_ch = file(params.restrander_config, checkIfExists: true)
+
+            // reorient reads with restrander
+            RESTRANDER(filtered_reads_ch, restrander_config_ch)
+
+            restranded_reads_ch = RESTRANDER.out.restranded_reads
+
+            // QC on restranded reads
+            RESTRANDED_READ_QC(restranded_reads_ch, "restranded", params.is_fastq_rich)
+
+            // output qc'ed reads
+            qced_reads_ch = restranded_reads_ch
+
+            // restrander stats aren't supported by multiqc
+            multiqc_cdna_qc_stats_ch = Channel.empty()
+        }
     }
 
     // remove any samples that after preprocessing have less than 'min_reads_per_sample'
-    full_length_reads_ch
+    qced_reads_ch
         .map { meta, fastq -> [meta, fastq, fastq.countFastq()] }
         .filter { _meta, _fastq, numreads -> numreads > params.min_reads_per_sample }
         .map { meta, fastq, _numreads -> tuple(meta, fastq) }
@@ -282,6 +312,9 @@ workflow {
         )
         .collect()
 
+    // add in any cDNA QC stats files
+    multiqc_alignment_input_files_ch = multiqc_alignment_input_files_ch.mix(multiqc_cdna_qc_stats_ch).collect()
+
     // run MultiQC on aligned read statistics
     MULTIQC(multiqc_alignment_input_files_ch, "aligned")
 
@@ -305,7 +338,11 @@ workflow {
             .map { meta, bam, _bai -> tuple(meta, bam) }
             .set { subset_alignments_bam_ch }
 
-        ALIGNED_SUBSET_READ_QC(subset_alignments_bam_ch, "aligned_subset", false)
+        // QC on subsetted alignments
+        // nanoplot crashes for pychopper processed reads
+        if (!params.run_cdna_qc || params.cdna_qc_method != "pychopper") {
+            ALIGNED_SUBSET_READ_QC(subset_alignments_bam_ch, "aligned_subset", false)
+        }
     }
 
     /*

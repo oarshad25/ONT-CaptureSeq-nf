@@ -6,8 +6,8 @@ process RESTRANDER {
 
     container 'genomicpariscentre/restrander:1.1.1'
 
-    publishDir "${params.outdir}/qc/full_length/restrander_stats", pattern: '*.json', mode: 'copy'
-    publishDir "${params.outdir}/fastq/full_length/", pattern: '*.restranded.fastq', mode: 'link'
+    publishDir "${params.outdir}/qc/restranded/restrander_stats", pattern: '*.json', mode: 'copy'
+    publishDir "${params.outdir}/fastq/restranded/", pattern: '*.restranded.fastq', mode: 'link'
 
     input:
     // input reads to restrand
@@ -17,7 +17,7 @@ process RESTRANDER {
     path config
 
     output:
-    tuple val(meta), path("${meta.id}.restranded.fastq"), emit: full_length_reads
+    tuple val(meta), path("${meta.id}.restranded.fastq"), emit: restranded_reads
     tuple val(meta), path("${meta.id}.stats.json"), emit: restrander_stats
 
     script:
