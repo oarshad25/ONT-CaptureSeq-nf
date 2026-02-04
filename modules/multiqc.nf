@@ -6,9 +6,7 @@ process MULTIQC {
 
     publishDir "${params.outdir}/qc/${step}/multiqc/", mode: 'copy'
 
-    container "${workflow.containerEngine == 'apptainer'
-        ? 'https://depot.galaxyproject.org/singularity/multiqc:1.26--pyhdfd78af_0'
-        : 'quay.io/biocontainers/multiqc:1.26--pyhdfd78af_0'}"
+    container "quay.io/biocontainers/multiqc:1.33--pyhdfd78af_0"
 
     input:
     path '*'

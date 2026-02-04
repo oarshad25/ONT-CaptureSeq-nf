@@ -19,6 +19,7 @@ dependencies managed using [Docker](https://www.docker.com) or [Apptainer](https
 5. Preprocessing of cDNA reads with one of the following (_optional_):
     * Identify, orient and trim full-length reads ([pychopper](https://github.com/epi2me-labs/pychopper))
     * Reorient reads ([restrander](https://github.com/mritchielab/restrander)).
+   Generate summary statistics on QC'ed reads with ([seqkit stats](https://bioinf.shenwei.me/seqkit/usage/#stats))
 6. Filter out any samples with small number of reads.
 7. Align reads to genome ([minimap2](https://github.com/lh3/minimap2))
     * Optionally prebuild minimap2 genome index.
@@ -26,12 +27,12 @@ dependencies managed using [Docker](https://www.docker.com) or [Apptainer](https
 8. Sort, index alignments and generate alignment statistics ([samtools](https://www.htslib.org/doc/))
 9. Additional QC of aligned reads
     * [Cramino](https://github.com/wdecoster/cramino).
-    * [NanoPlot](https://github.com/wdecoster/NanoPlot).
+    * [NanoPlot](https://github.com/wdecoster/NanoPlot) (Caveat: skip for pychopper processed reads due to incompatibility).
     * Optionally [RSeQC](https://rseqc.sourceforge.net).
-10. Summarise mapping QC ([MultiQC](https://multiqc.info/docs/)).
+10. Summarise QC stats for processed fastq's and mapped reads ([MultiQC](https://multiqc.info/docs/)).
 11. Filter out unmapped, secondary and supplementary reads ([samtools](https://www.htslib.org/doc/)).
 12. Optionally, if a genelist of interest is provided, generate a subset of aligned reads to genes in the list.
-    * QC metrics of subset of aligned reads to assess quality of reads mapping to genes of interest.
+    * QC metrics of subset of aligned reads to assess quality of reads mapping to genes of interest (skipped for pychopper processed reads).
 13. Generate gene level count matrix with [featureCounts](https://subread.sourceforge.net/featureCounts.html).
 14. Transcript reconstruction and quantification ([IsoQuant](https://ablab.github.io/IsoQuant/) or [FLAIR](https://flair.readthedocs.io/en/latest/index.html)).
 
