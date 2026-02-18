@@ -164,11 +164,12 @@ workflow {
     * QC on raw reads
     */
 
+    multiqc_input_files_ch = Channel.empty()
+
     // nanoplot and nanocomp on raw reads
     NANOPLOT(reads_ch, "raw", params.is_fastq_rich)
 
-    // files for multiqc
-    multiqc_nanocomp_raw_ch = NANOPLOT.out.txt.collect { it -> it[1] }
+    multiqc_input_files_ch = multiqc_input_files_ch.mix(NANOPLOT.out.txt.collect { it -> it[1] })
 
     // sort the reads channel by sample id
     // sorting is done so that nanocomp report is sorted by sample id
@@ -182,9 +183,7 @@ workflow {
     // seqkit stats on raw reads for final multiqc report
     SEQKIT_STATS_RAW(reads_ch, "raw")
 
-    multiqc_seqkit_stats_raw_ch = SEQKIT_STATS_RAW.out.stats.collect { it -> it[1] }
-
-    multiqc_raw_reads_input_files_ch = multiqc_nanocomp_raw_ch.mix(multiqc_seqkit_stats_raw_ch)
+    multiqc_input_files_ch = multiqc_input_files_ch.mix(SEQKIT_STATS_RAW.out.stats.collect { it -> it[1] })
 
     /*
     * Filter raw reads
@@ -203,9 +202,8 @@ workflow {
     // seqkit stats on filtered reads for final multiqc report
     SEQKIT_STATS_FILTERED(filtered_reads_ch, "filtered")
 
-    multiqc_seqkit_stats_filtered_ch = SEQKIT_STATS_FILTERED.out.stats.collect { it -> it[1] }
+    multiqc_input_files_ch = multiqc_input_files_ch.mix(SEQKIT_STATS_FILTERED.out.stats.collect { it -> it[1] })
 
-    multiqc_filtered_reads_input_files_ch = multiqc_seqkit_stats_filtered_ch
 
     /*
     * cDNA preprocessing/QC. Preprocess cDNA reads with pychopper or restrander if specified
@@ -213,9 +211,6 @@ workflow {
 
     // initialise output channel to upstream channel
     qced_reads_ch = filtered_reads_ch
-
-    // initialise channel for multiqc stats files from cDNA QC step
-    multiqc_cdna_qc_stats_ch = Channel.empty()
 
     // further QC for cDNA reads with pychopper or restrander
     if (params.run_cdna_qc) {
@@ -234,7 +229,7 @@ workflow {
             qced_reads_ch = full_length_reads_ch
 
             // stats file for multiqc
-            multiqc_cdna_qc_stats_ch = PYCHOPPER.out.stats.collect { it -> it[1] }
+            multiqc_input_files_ch = multiqc_input_files_ch.mix(PYCHOPPER.out.stats.collect { it -> it[1] })
         }
         else if (params.cdna_qc_method == "restrander") {
 
@@ -248,20 +243,13 @@ workflow {
 
             // output qc'ed reads
             qced_reads_ch = restranded_reads_ch
-
-            // restrander stats aren't supported by multiqc
-            multiqc_cdna_qc_stats_ch = Channel.empty()
         }
     }
 
     // get seqkit stats on qc'ed reads
     SEQKIT_STATS_QCED(qced_reads_ch, "qced")
 
-    // channel with seqkit stats tsv files for multiqc
-    multiqc_seqkit_stats_qced_ch = SEQKIT_STATS_QCED.out.stats.collect { it -> it[1] }
-
-    // add seqkit stats files to cDNA qc stats files to create multiqc input files for qced reads
-    multiqc_qced_reads_input_files_ch = multiqc_cdna_qc_stats_ch.mix(multiqc_seqkit_stats_qced_ch).collect()
+    multiqc_input_files_ch = multiqc_input_files_ch.mix(SEQKIT_STATS_QCED.out.stats.collect { it -> it[1] })
 
     // remove any samples that after preprocessing have less than 'min_reads_per_sample'
     qced_reads_ch
@@ -305,54 +293,21 @@ workflow {
     * Alignment MultiQC report
     */
 
-    // alignment flagstats input channel for MultiQC
-    multiqc_flagstat_ch = ALIGNMENT.out.flagstat.collect { it -> it[1] }
+    // add qc files from alignment subworkflow to multiqc input channel
+    multiqc_input_files_ch = multiqc_input_files_ch
+        .mix(ALIGNMENT.out.flagstat.collect { it -> it[1] })
+        .mix(ALIGNMENT.out.nanostats.collect { it -> it[1] })
+        .mix(ALIGNMENT.out.rseqc_bam_stat.collect { it -> it[1] }.ifEmpty([]))
+        .mix(ALIGNMENT.out.rseqc_read_gc_xls.collect { it -> it[1] }.ifEmpty([]))
+        .mix(ALIGNMENT.out.rseqc_read_dist.collect { it -> it[1] }.ifEmpty([]))
+        .mix(ALIGNMENT.out.rseqc_read_dup_pos_xls.collect { it -> it[1] }.ifEmpty([]))
+        .mix(ALIGNMENT.out.rseqc_junc_anno_log.collect { it -> it[1] }.ifEmpty([]))
+        .mix(ALIGNMENT.out.rseqc_junc_sat_rscript.collect { it -> it[1] }.ifEmpty([]))
+        .mix(ALIGNMENT.out.rseqc_infer_exp.collect { it -> it[1] }.ifEmpty([]))
 
-    // nanostats input channel for multiQC
-    multiqc_alignment_nanostats_ch = ALIGNMENT.out.nanostats.collect { it -> it[1] }
-
-    // channel with text files containing RSeQC bam stats
-    multiqc_rseqc_bam_stat_ch = ALIGNMENT.out.rseqc_bam_stat.collect { it -> it[1] }.ifEmpty([])
-
-    // channel with files containing RSeQC read GC content calculations
-    multiqc_rseqc_read_gc_ch = ALIGNMENT.out.rseqc_read_gc_xls.collect { it -> it[1] }.ifEmpty([])
-
-    // channel with text files containing RSeQC read distribution calculations
-    multiqc_rseqc_read_dist_ch = ALIGNMENT.out.rseqc_read_dist.collect { it -> it[1] }.ifEmpty([])
-
-    // channel with files containing RSeQC read duplication calculations based on mapping position
-    multiqc_rseqc_read_dup_ch = ALIGNMENT.out.rseqc_read_dup_pos_xls.collect { it -> it[1] }.ifEmpty([])
-
-    // channel with text files containing RSeQC junction annotation module logs
-    multiqc_rseqc_junc_anno_ch = ALIGNMENT.out.rseqc_junc_anno_log.collect { it -> it[1] }.ifEmpty([])
-
-    // channel with files containing RSeQC junction saturation module rscripts
-    multiqc_rseqc_junc_sat_ch = ALIGNMENT.out.rseqc_junc_sat_rscript.collect { it -> it[1] }.ifEmpty([])
-
-    // channel with files containing RSeQC infer_experiment.py module results
-    multiqc_rseqc_infer_exp_ch = ALIGNMENT.out.rseqc_infer_exp.collect { it -> it[1] }.ifEmpty([])
-
-    // combine samtools flagstat, nanostats and RSeQC files
-    multiqc_alignment_input_files_ch = multiqc_flagstat_ch
-        .mix(
-            multiqc_alignment_nanostats_ch,
-            multiqc_rseqc_bam_stat_ch,
-            multiqc_rseqc_read_gc_ch,
-            multiqc_rseqc_read_dist_ch,
-            multiqc_rseqc_read_dup_ch,
-            multiqc_rseqc_junc_anno_ch,
-            multiqc_rseqc_junc_sat_ch,
-            multiqc_rseqc_infer_exp_ch,
-        )
-        .collect()
-
-    // add in any cDNA QC stats files
-    multiqc_input_files_ch = multiqc_alignment_input_files_ch.mix(multiqc_raw_reads_input_files_ch, multiqc_filtered_reads_input_files_ch, multiqc_qced_reads_input_files_ch).collect()
-
-    // run MultiQC on aligned read statistics
     multiqc_config_ch = file(params.multiqc_config, checkIfExists: true)
 
-    MULTIQC(multiqc_input_files_ch, multiqc_config_ch, "aligned")
+    MULTIQC(multiqc_input_files_ch.collect(), multiqc_config_ch, "aligned")
 
     /*
     * GENERATE ALIGNMENT SUBSET
