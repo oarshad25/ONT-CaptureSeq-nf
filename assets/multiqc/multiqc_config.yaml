@@ -1,0 +1,24 @@
+module_order:
+  - seqkit:
+      name: "Seqkit (raw)"
+      anchor: "seqkit_stats_raw"
+      info: "This section of the report shows seqkit stats on input reads."
+      path_filters:
+        - "*raw_seqkit_stats.tsv"
+  - seqkit:
+      name: "Seqkit (filtered)"
+      anchor: "seqkit_stats_filtered"
+      info: "This section of the report shows Seqkit stats after filtering reads on length and quality."
+      target: ""
+      path_filters:
+        - "*filtered_seqkit_stats.tsv"
+  - pychopper
+  - seqkit:
+      name: "Seqkit (qced)"
+      anchor: "seqkit_stats_qced"
+      info: "This section of the report shows Seqkit stats after cDNA QC."
+      target: ""
+      path_filters:
+        - "*qced_seqkit_stats.tsv"
+  - samtools
+  - rseqc

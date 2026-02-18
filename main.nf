@@ -19,7 +19,7 @@ include { MERGE_BAMS } from "./modules/merge_bams"
 
 // include subworkflows
 include { PREPARE_REFERENCE_FILES } from "./subworkflows/prepare_reference_files"
-include { SEQKIT_STATS } from "./modules/seqkit_stats.nf"
+include { SEQKIT_STATS as SEQKIT_STATS_RAW ; SEQKIT_STATS as SEQKIT_STATS_FILTERED ; SEQKIT_STATS as SEQKIT_STATS_QCED } from "./modules/seqkit_stats.nf"
 include { READ_QC as RAW_READ_QC ; READ_QC as FILTERED_READ_QC ; READ_QC as RESTRANDED_READ_QC ; READ_QC as ALIGNED_SUBSET_READ_QC } from "./subworkflows/read_qc"
 include { ALIGNMENT } from "./subworkflows/alignment"
 include { SUBSET_ALIGNMENTS } from "./subworkflows/subset_alignments.nf"
@@ -161,7 +161,16 @@ workflow {
     /*
     * QC on raw reads
     */
+
+    // nanoplot and nanocomp on raw reads
     RAW_READ_QC(reads_ch, "raw", params.is_fastq_rich)
+
+    // seqkit stats on raw reads for final multiqc report
+    SEQKIT_STATS_RAW(reads_ch, "raw")
+
+    multiqc_seqkit_stats_raw_ch = SEQKIT_STATS_RAW.out.stats.collect { it -> it[1] }
+
+    multiqc_raw_reads_input_files_ch = multiqc_seqkit_stats_raw_ch
 
     /*
     * Filter raw reads
@@ -176,9 +185,16 @@ workflow {
 
         filtered_reads_ch = FILTER_READS.out.filtered_reads
 
-        // QC stats on filtered reads
+        // nanoplot and nanocomp  on filtered reads
         FILTERED_READ_QC(filtered_reads_ch, "filtered", params.is_fastq_rich)
     }
+
+    // seqkit stats on filtered reads for final multiqc report
+    SEQKIT_STATS_FILTERED(filtered_reads_ch, "filtered")
+
+    multiqc_seqkit_stats_filtered_ch = SEQKIT_STATS_FILTERED.out.stats.collect { it -> it[1] }
+
+    multiqc_filtered_reads_input_files_ch = multiqc_seqkit_stats_filtered_ch
 
     /*
     * cDNA preprocessing/QC. Preprocess cDNA reads with pychopper or restrander if specified
@@ -231,13 +247,13 @@ workflow {
     }
 
     // get seqkit stats on qc'ed reads
-    SEQKIT_STATS(qced_reads_ch, "qced")
+    SEQKIT_STATS_QCED(qced_reads_ch, "qced")
 
     // channel with seqkit stats tsv files for multiqc
-    multiqc_seqkit_stats_ch = SEQKIT_STATS.out.stats.collect { it -> it[1] }
+    multiqc_seqkit_stats_qced_ch = SEQKIT_STATS_QCED.out.stats.collect { it -> it[1] }
 
     // add seqkit stats files to cDNA qc stats files to create multiqc input files for qced reads
-    multiqc_qced_reads_input_files_ch = multiqc_cdna_qc_stats_ch.mix(multiqc_seqkit_stats_ch).collect()
+    multiqc_qced_reads_input_files_ch = multiqc_cdna_qc_stats_ch.mix(multiqc_seqkit_stats_qced_ch).collect()
 
     // remove any samples that after preprocessing have less than 'min_reads_per_sample'
     qced_reads_ch
@@ -323,10 +339,12 @@ workflow {
         .collect()
 
     // add in any cDNA QC stats files
-    multiqc_input_files_ch = multiqc_alignment_input_files_ch.mix(multiqc_qced_reads_input_files_ch).collect()
+    multiqc_input_files_ch = multiqc_alignment_input_files_ch.mix(multiqc_raw_reads_input_files_ch, multiqc_filtered_reads_input_files_ch, multiqc_qced_reads_input_files_ch).collect()
 
     // run MultiQC on aligned read statistics
-    MULTIQC(multiqc_input_files_ch, "aligned")
+    multiqc_config_ch = file(params.multiqc_config, checkIfExists: true)
+
+    MULTIQC(multiqc_input_files_ch, multiqc_config_ch, "aligned")
 
     /*
     * GENERATE ALIGNMENT SUBSET

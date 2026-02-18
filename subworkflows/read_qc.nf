@@ -26,7 +26,10 @@ workflow READ_QC {
 
     def multiqc_input_ch = NANOPLOT.out.txt.collect { it -> it[1] }
 
-    MULTIQC(multiqc_input_ch, step)
+    // dummy multiqc config file channel
+    Channel.fromPath("${projectDir}/assets/NO_FILE").set { multiqc_config_ch }
+
+    MULTIQC(multiqc_input_ch, multiqc_config_ch, step)
 
     emit:
     nanostats = NANOPLOT.out.txt // queue channel of sample nanostat txt files: [val(meta), path(nanostats_files)] file(sample1_NanoStats.txt)

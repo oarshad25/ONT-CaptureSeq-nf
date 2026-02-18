@@ -9,8 +9,9 @@ process MULTIQC {
     container "quay.io/biocontainers/multiqc:1.33--pyhdfd78af_0"
 
     input:
-    path '*'
-
+    path multiqc_files
+    //, stageAs: "?/*"
+    path multiqc_config
     // string. Used in publishDir to set path
     // allows us to put seperate invocations on MultiQC
     // e.g. on raw or filtered data
@@ -21,8 +22,10 @@ process MULTIQC {
     path 'multiqc_report.html'
 
     script:
+    def config = multiqc_config.name != 'NO_FILE' ? "--config ${multiqc_config}" : ''
     """
     multiqc \\
+        ${config} \\
         --force \\
         .
     """

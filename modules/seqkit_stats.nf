@@ -24,7 +24,7 @@ process SEQKIT_STATS {
     val step
 
     output:
-    tuple val(meta), path("${meta.id}.seqkit_stats.tsv"), emit: stats
+    tuple val(meta), path("${meta.id}.${step}_seqkit_stats.tsv"), emit: stats
 
     script:
     """
@@ -38,6 +38,6 @@ process SEQKIT_STATS {
         --tabular \\
         --threads ${task.cpus} \\
         --basename \\
-        ${meta.id}.fastq > "${meta.id}.seqkit_stats.tsv"
+        ${meta.id}.fastq > "${meta.id}.${step}_seqkit_stats.tsv"
     """
 }
