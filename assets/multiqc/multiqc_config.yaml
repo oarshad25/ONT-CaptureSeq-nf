@@ -1,4 +1,5 @@
 module_order:
+  - nanostat
   - seqkit:
       name: "Seqkit (raw)"
       anchor: "seqkit_stats_raw"

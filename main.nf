@@ -19,6 +19,8 @@ include { MERGE_BAMS } from "./modules/merge_bams"
 
 // include subworkflows
 include { PREPARE_REFERENCE_FILES } from "./subworkflows/prepare_reference_files"
+include { NANOPLOT } from "./modules/nanoplot"
+include { NANOCOMP } from "./modules/nanocomp"
 include { SEQKIT_STATS as SEQKIT_STATS_RAW ; SEQKIT_STATS as SEQKIT_STATS_FILTERED ; SEQKIT_STATS as SEQKIT_STATS_QCED } from "./modules/seqkit_stats.nf"
 include { READ_QC as RAW_READ_QC ; READ_QC as FILTERED_READ_QC ; READ_QC as RESTRANDED_READ_QC ; READ_QC as ALIGNED_SUBSET_READ_QC } from "./subworkflows/read_qc"
 include { ALIGNMENT } from "./subworkflows/alignment"
@@ -163,14 +165,26 @@ workflow {
     */
 
     // nanoplot and nanocomp on raw reads
-    RAW_READ_QC(reads_ch, "raw", params.is_fastq_rich)
+    NANOPLOT(reads_ch, "raw", params.is_fastq_rich)
+
+    // files for multiqc
+    multiqc_nanocomp_raw_ch = NANOPLOT.out.txt.collect { it -> it[1] }
+
+    // sort the reads channel by sample id
+    // sorting is done so that nanocomp report is sorted by sample id
+    reads_ch
+        .toSortedList { tup1, tup2 -> tup1[0].id <=> tup2[0].id }
+        .flatMap()
+        .set { sorted_reads_ch }
+
+    NANOCOMP(sorted_reads_ch.collect { it -> it[1] }, "raw")
 
     // seqkit stats on raw reads for final multiqc report
     SEQKIT_STATS_RAW(reads_ch, "raw")
 
     multiqc_seqkit_stats_raw_ch = SEQKIT_STATS_RAW.out.stats.collect { it -> it[1] }
 
-    multiqc_raw_reads_input_files_ch = multiqc_seqkit_stats_raw_ch
+    multiqc_raw_reads_input_files_ch = multiqc_nanocomp_raw_ch.mix(multiqc_seqkit_stats_raw_ch)
 
     /*
     * Filter raw reads
@@ -184,9 +198,6 @@ workflow {
         FILTER_READS(reads_ch, params.min_length, params.max_length, params.min_qual)
 
         filtered_reads_ch = FILTER_READS.out.filtered_reads
-
-        // nanoplot and nanocomp  on filtered reads
-        FILTERED_READ_QC(filtered_reads_ch, "filtered", params.is_fastq_rich)
     }
 
     // seqkit stats on filtered reads for final multiqc report
@@ -234,9 +245,6 @@ workflow {
             RESTRANDER(filtered_reads_ch, restrander_config_ch)
 
             restranded_reads_ch = RESTRANDER.out.restranded_reads
-
-            // QC on restranded reads
-            RESTRANDED_READ_QC(restranded_reads_ch, "restranded", params.is_fastq_rich)
 
             // output qc'ed reads
             qced_reads_ch = restranded_reads_ch
