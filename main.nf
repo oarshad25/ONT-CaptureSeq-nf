@@ -256,13 +256,6 @@ workflow {
 
     multiqc_input_files_ch = multiqc_input_files_ch.mix(SEQKIT_STATS_QCED.out.stats.collect { it -> it[1] })
 
-    // remove any samples that after preprocessing have less than 'min_reads_per_sample'
-    qced_reads_ch
-        .map { meta, fastq -> [meta, fastq, fastq.countFastq()] }
-        .filter { _meta, _fastq, numreads -> numreads > params.min_reads_per_sample }
-        .map { meta, fastq, _numreads -> tuple(meta, fastq) }
-        .set { processed_reads_ch }
-
     /*
     * ALIGNMENT
     */
@@ -271,7 +264,7 @@ workflow {
 
     // align reads to genome with MiniMap and generate read QC statistics
     ALIGNMENT(
-        processed_reads_ch,
+        qced_reads_ch,
         genome_ch,
         annotation_ch,
         annotation_bed_ch,
@@ -399,7 +392,7 @@ workflow {
                 MERGE_BAMS.out.merged_bambai,
                 genome_ch,
                 annotation_ch,
-                processed_reads_ch.collect { it -> it[1] },
+                qced_reads_ch.collect { it -> it[1] },
                 params.flair_collapse_extra_opts,
                 flair_align_reads_manifest_ch,
             )
