@@ -13,21 +13,20 @@ dependencies managed using [Docker](https://www.docker.com) or [Apptainer](https
     * Convert GTF to BED using UCSC utilities [ucsc-gtftogenepred](https://open.bioqueue.org/home/knowledge/showKnowledge/sig/ucsc-gtftogenepred)
       and [ucsc-genepredtobed](https://open.bioqueue.org/home/knowledge/showKnowledge/sig/ucsc-genepredtobed).
 2. Merge fastq files per sample and decompress  ([zcat](https://linux.die.net/man/1/zcat)).
-3. Drop samples with reads below a threshold.
-4. Raw read QC ([NanoPlot](https://github.com/wdecoster/NanoPlot), [MultiQC](https://multiqc.info/docs/)).
+3. Drop any samples with small number of reads by filtering samples with read count below a threshold.
+4. Raw read QC ([NanoPlot](https://github.com/wdecoster/NanoPlot), [NanoComp](https://github.com/wdecoster/nanocomp) [MultiQC](https://multiqc.info/docs/)).
 5. Filter reads on length and quality ([seqkit seq](https://bioinf.shenwei.me/seqkit/usage/#seq); _optional_).
-    * QC of filtered reads.
+    * Summary statistics of filtered reads.
 6. Preprocessing of cDNA reads with one of the following (_optional_):
     * Identify, orient and trim full-length reads ([pychopper](https://github.com/epi2me-labs/pychopper))
     * Reorient reads ([restrander](https://github.com/mritchielab/restrander)).
    Generate summary statistics on QC'ed reads with ([seqkit stats](https://bioinf.shenwei.me/seqkit/usage/#stats))
-7. Filter out any samples with small number of reads.8. Align reads to genome ([minimap2](https://github.com/lh3/minimap2))
+7. Align reads to genome ([minimap2](https://github.com/lh3/minimap2))
     * Optionally prebuild minimap2 genome index.
     * Optionally use reference annotation to prioritise on known splice junctions.
 8. Sort, index alignments and generate alignment statistics ([samtools](https://www.htslib.org/doc/))
 9. Additional QC of aligned reads
     * [Cramino](https://github.com/wdecoster/cramino).
-    * [NanoPlot](https://github.com/wdecoster/NanoPlot) (Caveat: skip for pychopper processed reads due to incompatibility).
     * Optionally [RSeQC](https://rseqc.sourceforge.net).
 10. Summarise QC stats for processed fastq's and mapped reads ([MultiQC](https://multiqc.info/docs/)).
 11. Filter out unmapped, secondary and supplementary reads ([samtools](https://www.htslib.org/doc/)).
