@@ -23,7 +23,6 @@ include { MERGE_BAMS } from "./modules/merge_bams"
 // include subworkflows
 include { PREPARE_REFERENCE_FILES } from "./subworkflows/prepare_reference_files"
 include { DROP_FASTQS_ON_READ_COUNT } from "./subworkflows/drop_fastqs_on_read_count"
-include { READ_QC as RAW_READ_QC ; READ_QC as FILTERED_READ_QC ; READ_QC as RESTRANDED_READ_QC ; READ_QC as ALIGNED_SUBSET_READ_QC } from "./subworkflows/read_qc"
 include { ALIGNMENT } from "./subworkflows/alignment"
 include { SUBSET_ALIGNMENTS } from "./subworkflows/subset_alignments.nf"
 include { FLAIR } from "./subworkflows/flair"
@@ -294,7 +293,6 @@ workflow {
     // add qc files from alignment subworkflow to multiqc input channel
     multiqc_input_files_ch = multiqc_input_files_ch
         .mix(ALIGNMENT.out.flagstat.collect { it -> it[1] })
-        .mix(ALIGNMENT.out.nanostats.collect { it -> it[1] })
         .mix(ALIGNMENT.out.rseqc_bam_stat.collect { it -> it[1] }.ifEmpty([]))
         .mix(ALIGNMENT.out.rseqc_read_gc_xls.collect { it -> it[1] }.ifEmpty([]))
         .mix(ALIGNMENT.out.rseqc_read_dist.collect { it -> it[1] }.ifEmpty([]))
@@ -321,17 +319,6 @@ workflow {
 
         // subset alignments to genes in list
         SUBSET_ALIGNMENTS(aligned_reads_ch, annotation_ch, genelist_to_subset_alignments_ch)
-
-        // create a channel of BAMs to run QC of requisite cardinality
-        SUBSET_ALIGNMENTS.out.bambai
-            .map { meta, bam, _bai -> tuple(meta, bam) }
-            .set { subset_alignments_bam_ch }
-
-        // QC on subsetted alignments
-        // nanoplot crashes for pychopper processed reads
-        if (!params.run_cdna_qc || params.cdna_qc_method != "pychopper") {
-            ALIGNED_SUBSET_READ_QC(subset_alignments_bam_ch, "aligned_subset", false)
-        }
     }
 
     /*

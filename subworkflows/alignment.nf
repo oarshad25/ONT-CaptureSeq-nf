@@ -16,7 +16,6 @@ include { MINIMAP2_PAFTOOLS_GFF2BED } from "../modules/minimap2_paftools_gff2bed
 include { MINIMAP2 } from "../modules/minimap2"
 include { SAMTOOLS } from "../modules/samtools"
 include { CRAMINO } from "../modules/cramino"
-include { NANOPLOT } from "../modules/nanoplot"
 include { FILTER_ALIGNMENTS } from "../modules/filter_alignments"
 
 include { RSEQC } from "./rseqc"
@@ -106,19 +105,6 @@ workflow ALIGNMENT {
     CRAMINO(SAMTOOLS.out.bambai)
 
     /*
-    * Run nanoplot to get metrics on alignment bams
-    */
-
-    nanostats_ch = Channel.empty()
-
-    // nanoplot crashes for pychopper processed reads
-    if (!params.run_cdna_qc || params.cdna_qc_method != "pychopper") {
-        def nanoplot_input_ch = SAMTOOLS.out.bambai.map { meta, bam, _bai -> tuple(meta, bam) }
-        NANOPLOT(nanoplot_input_ch, "aligned", "")
-        nanostats_ch = NANOPLOT.out.txt
-    }
-
-    /*
     * Use RSeQC for alignment QC
     */
 
@@ -167,7 +153,6 @@ workflow ALIGNMENT {
     bambai = bambai_ch // sorted and indexed reads (optionally filtered to mapped only): [val(meta), path(bam), path(bai)]
     flagstat = SAMTOOLS.out.flagstat // alignment flagstats [val(meta), path(flagstat_file)]
     cramino_stats = CRAMINO.out.stats_txt // cramino bam stats [val(meta), path(cramino_stat_file)]
-    nanostats = nanostats_ch // nanostats [val(meta), path(nanostat_file)] or Channel.empty(), if cdna_qc_method is 'pychopper'
     rseqc_bam_stat = rseqc_bam_stat_ch // RSeQC bam summary statistics [val(meta), path(bam_stat_file)] or Channel.empty(), if skip_rseqc
     rseqc_read_gc_xls = rseqc_read_gc_xls_ch // RSeQC read GC content calculation xls file [val(meta), path(read_gc_xls)] or Channel.empty(), if skip_rseqc
     rseqc_read_dist = rseqc_read_dist_ch // RSeQC read distribution calculations [val(meta), path(read_dist_file)] or Channel.empty(), if skip_rseqc
