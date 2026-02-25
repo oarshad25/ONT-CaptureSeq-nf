@@ -22,6 +22,7 @@ include { MERGE_BAMS } from "./modules/merge_bams"
 
 // include subworkflows
 include { PREPARE_REFERENCE_FILES } from "./subworkflows/prepare_reference_files"
+include { DROP_FASTQS_ON_READ_COUNT } from "./subworkflows/drop_fastqs_on_read_count"
 include { READ_QC as RAW_READ_QC ; READ_QC as FILTERED_READ_QC ; READ_QC as RESTRANDED_READ_QC ; READ_QC as ALIGNED_SUBSET_READ_QC } from "./subworkflows/read_qc"
 include { ALIGNMENT } from "./subworkflows/alignment"
 include { SUBSET_ALIGNMENTS } from "./subworkflows/subset_alignments.nf"
@@ -154,11 +155,15 @@ workflow {
 
     // channel containing the merged fastq for samples that pass read count filter
     // [meta, fastq]
-    reads_ch = CONCAT_FASTQ.out.merged_reads
-        .map { meta, fastq -> [meta, fastq, fastq.countFastq()] }
-        .filter { _meta, _fastq, numreads -> numreads > params.min_reads_per_sample }
-        .map { meta, fastq, _numreads -> tuple(meta, fastq) }
+    // reads_ch = CONCAT_FASTQ.out.merged_reads
+    //     .map { meta, fastq -> [meta, fastq, fastq.countFastq()] }
+    //     .filter { _meta, _fastq, numreads -> numreads > params.min_reads_per_sample }
+    //     .map { meta, fastq, _numreads -> tuple(meta, fastq) }
 
+    DROP_FASTQS_ON_READ_COUNT(CONCAT_FASTQ.out.merged_reads, params.min_reads_per_sample, "input")
+
+    // channel containing the fastqs for samples that pass read count filter
+    reads_ch = DROP_FASTQS_ON_READ_COUNT.out
 
     /*
     * QC on raw reads
