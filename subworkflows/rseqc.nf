@@ -5,17 +5,12 @@
 
 Use RSeQC on aligned reads. This subworkflow takes the aligned reads
 (sorted and indexed BAMs) and input reference gene model bed and runs the RSeqC modules
-bam_stat.py, read_gc.py, read_distribution.py, read_duplication.py,
-junction_annotation.py, junction_saturation.py and infer_experiment.py
+read_gc.py, read_distribution.py, and infer_experiment.py
 to calculate various statistics
 
-* RSeQC script bam_stat.py is used to summarise mapping statistics
 * RSeQC script read_gc.py is used to calculate GC content distribution of reads
 * RSeQC module read_distribution.py is used to calculate read distribution
   of mapped reads over genomic features.
-* read_duplication.py is used to calculate read duplication rate based on mapping position
-* Module junction_annotation.py is used to compare detected splice junctions to reference
-* Module junction_saturation.py is used to determine if sequencing depth is deep enough
   to perform alternative splicing analysis
 * Module infer_experiment.py is used to infer strandedness, guess how RNA-seq experiment
   was configured
@@ -26,47 +21,14 @@ workflow RSEQC {
     rseqc_bed_ch // path/to/bed: path(bed)
 
     main:
-    RSEQC_BAM_STAT(bambai)
     RSEQC_READ_GC(bambai)
     RSEQC_READ_DISTRIBUTION(bambai, rseqc_bed_ch)
-    RSEQC_READ_DUPLICATION(bambai, rseqc_bed_ch)
-    RSEQC_JUNCTION_ANNOTATION(bambai, rseqc_bed_ch)
-    RSEQC_JUNCTION_SATURATION(bambai, rseqc_bed_ch)
     RSEQC_INFER_EXPERIMENT(bambai, rseqc_bed_ch)
 
     emit:
-    bam_stat_txt = RSEQC_BAM_STAT.out.txt // [val(meta), path(txt)]
     read_gc_xls = RSEQC_READ_GC.out.xls // [val(meta), path(xls)]
     read_distribution_txt = RSEQC_READ_DISTRIBUTION.out.txt // [val(meta), path(txt)]
-    read_duplication_pos_xls = RSEQC_READ_DUPLICATION.out.pos_xls // [val(meta), path(xls)]
-    junction_annotation_log = RSEQC_JUNCTION_ANNOTATION.out.log // [val(meta), path(log)]
-    junction_saturation_rscript = RSEQC_JUNCTION_SATURATION.out.rscript // [val(meta), path(rscript)]
     infer_experiment_txt = RSEQC_INFER_EXPERIMENT.out.txt // [val(meta), path(txt)]
-}
-
-// use RSeQC to summarise mapping statistics
-process RSEQC_BAM_STAT {
-    tag "${meta.id}"
-    label 'single'
-
-    conda "bioconda rseqc=5.0.4"
-    container "${workflow.containerEngine == 'apptainer'
-        ? 'https://depot.galaxyproject.org/singularity/rseqc:5.0.4--pyhdfd78af_0'
-        : 'quay.io/biocontainers/rseqc:5.0.4--pyhdfd78af_0'}"
-
-    input:
-    // sorted and indexed bam file
-    tuple val(meta), path(bam), path(bai)
-
-    output:
-    tuple val(meta), path("${meta.id}.bam_stat.txt"), emit: txt
-
-    script:
-    """
-    bam_stat.py \\
-        -i ${bam} \\
-        > ${meta.id}.bam_stat.txt
-    """
 }
 
 // use RSeQC to compute GC content distribution of reads
@@ -122,102 +84,6 @@ process RSEQC_READ_DISTRIBUTION {
         -i ${bam} \\
         -r ${bed} \\
         > ${meta.id}.read_distribution.txt
-    """
-}
-
-// use RSeQC to calculate read duplication statistics
-process RSEQC_READ_DUPLICATION {
-    tag "${meta.id}"
-    label 'single'
-
-    conda "bioconda rseqc=5.0.4"
-    container "${workflow.containerEngine == 'apptainer'
-        ? 'https://depot.galaxyproject.org/singularity/rseqc:5.0.4--pyhdfd78af_0'
-        : 'quay.io/biocontainers/rseqc:5.0.4--pyhdfd78af_0'}"
-
-    input:
-    // sorted and indexed bam file
-    tuple val(meta), path(bam), path(bai)
-
-    // bed file output from UCSC utilities
-    path bed
-
-    output:
-    tuple val(meta), path("*seq.DupRate.xls"), emit: seq_xls
-    tuple val(meta), path("*pos.DupRate.xls"), emit: pos_xls
-    tuple val(meta), path("*.pdf"), emit: pdf, optional: true
-    tuple val(meta), path("*.r"), emit: rscript, optional: true
-
-    script:
-    """
-    read_duplication.py \\
-        -i ${bam} \\
-        -o ${meta.id}
-    """
-}
-
-// use RSeQC to compare detected splice junctions to reference
-process RSEQC_JUNCTION_ANNOTATION {
-    tag "${meta.id}"
-    label 'single'
-
-    conda "bioconda rseqc=5.0.4"
-    container "${workflow.containerEngine == 'apptainer'
-        ? 'https://depot.galaxyproject.org/singularity/rseqc:5.0.4--pyhdfd78af_0'
-        : 'quay.io/biocontainers/rseqc:5.0.4--pyhdfd78af_0'}"
-
-    input:
-    // sorted and indexed bam file
-    tuple val(meta), path(bam), path(bai)
-
-    // bed file output from UCSC utilities
-    path bed
-
-    output:
-    tuple val(meta), path("*.xls"), emit: xls
-    tuple val(meta), path("*.r"), emit: rscript
-    tuple val(meta), path("*.log"), emit: log
-    tuple val(meta), path("*.junction.bed"), optional: true, emit: bed
-    tuple val(meta), path("*.Interact.bed"), optional: true, emit: interact_bed
-    tuple val(meta), path("*junction.pdf"), optional: true, emit: pdf
-    tuple val(meta), path("*events.pdf"), optional: true, emit: events_pdf
-
-    script:
-    """
-    junction_annotation.py \\
-        -i ${bam} \\
-        -r ${bed} \\
-        -o ${meta.id} \\
-        2> ${meta.id}.junction_annotation.log
-    """
-}
-
-// run RSeQC junction saturation module
-process RSEQC_JUNCTION_SATURATION {
-    tag "${meta.id}"
-    label 'single'
-
-    conda "bioconda rseqc=5.0.4"
-    container "${workflow.containerEngine == 'apptainer'
-        ? 'https://depot.galaxyproject.org/singularity/rseqc:5.0.4--pyhdfd78af_0'
-        : 'quay.io/biocontainers/rseqc:5.0.4--pyhdfd78af_0'}"
-
-    input:
-    // sorted and indexed bam file
-    tuple val(meta), path(bam), path(bai)
-
-    // bed file output from UCSC utilities
-    path bed
-
-    output:
-    tuple val(meta), path("*.r"), emit: rscript
-
-    script:
-    """
-    junction_saturation.py \\
-        -i ${bam} \\
-        -r ${bed} \\
-        -o ${meta.id}
     """
 }
 

@@ -109,30 +109,18 @@ workflow ALIGNMENT {
     */
 
     //initialise empty channel to contain rseqc module outputs
-    rseqc_bam_stat_ch = Channel.empty()
     rseqc_read_gc_xls_ch = Channel.empty()
     rseqc_read_dist_ch = Channel.empty()
-    rseqc_read_dup_pos_xls_ch = Channel.empty()
-    rseqc_junc_anno_log_ch = Channel.empty()
-    rseqc_junc_sat_rscript_ch = Channel.empty()
     rseqc_infer_exp_ch = Channel.empty()
 
     // calculate read distribution of aligned reads with RSeQC if parameter 'skip_resqc' is set
     if (!skip_rseqc) {
         // run RSeQC subworkflow
         RSEQC(SAMTOOLS.out.bambai, rseqc_bed)
-        // channel with text files containing bam summary statistics
-        rseqc_bam_stat_ch = RSEQC.out.bam_stat_txt
         // channel with xls files containing read GC content calculations
         rseqc_read_gc_xls_ch = RSEQC.out.read_gc_xls
         // channel with text files containing read distribution calculations
         rseqc_read_dist_ch = RSEQC.out.read_distribution_txt
-        // channel with xls files containing read duplication rate from mapping position of reads
-        rseqc_read_dup_pos_xls_ch = RSEQC.out.read_duplication_pos_xls
-        // channel with log files for RSeQC junction annotation module
-        rseqc_junc_anno_log_ch = RSEQC.out.junction_annotation_log
-        // channel with rscripts for RSeQC junction saturation module
-        rseqc_junc_sat_rscript_ch = RSEQC.out.junction_saturation_rscript
         // channel with txt file containing results of infer_experiment module
         rseqc_infer_exp_ch = RSEQC.out.infer_experiment_txt
     }
@@ -153,11 +141,7 @@ workflow ALIGNMENT {
     bambai = bambai_ch // sorted and indexed reads (optionally filtered to mapped only): [val(meta), path(bam), path(bai)]
     flagstat = SAMTOOLS.out.flagstat // alignment flagstats [val(meta), path(flagstat_file)]
     cramino_stats = CRAMINO.out.stats_txt // cramino bam stats [val(meta), path(cramino_stat_file)]
-    rseqc_bam_stat = rseqc_bam_stat_ch // RSeQC bam summary statistics [val(meta), path(bam_stat_file)] or Channel.empty(), if skip_rseqc
     rseqc_read_gc_xls = rseqc_read_gc_xls_ch // RSeQC read GC content calculation xls file [val(meta), path(read_gc_xls)] or Channel.empty(), if skip_rseqc
     rseqc_read_dist = rseqc_read_dist_ch // RSeQC read distribution calculations [val(meta), path(read_dist_file)] or Channel.empty(), if skip_rseqc
-    rseqc_read_dup_pos_xls = rseqc_read_dup_pos_xls_ch // RSeQC read duplication calculation excel file based on mapping position [val(meta), path(read_dup_pos_xls_file)] or Channel.empty(), if skip_rseqc
-    rseqc_junc_anno_log = rseqc_junc_anno_log_ch // RSeQC junction annotation module logs [val(meta), path(junc_anno_log)] or Channel.empty(), if skip_rseqc
-    rseqc_junc_sat_rscript = rseqc_junc_sat_rscript_ch // RSeQC junction annotation module logs [val(meta), path(junc_anno_log)] or Channel.empty(), if skip_rseqc
     rseqc_infer_exp = rseqc_infer_exp_ch // RSeQC infer experiment module result [val(meta) path(infer_exp_txt)] or Channel.empty(), if skip_rseqc
 }

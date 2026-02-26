@@ -293,12 +293,8 @@ workflow {
     // add qc files from alignment subworkflow to multiqc input channel
     multiqc_input_files_ch = multiqc_input_files_ch
         .mix(ALIGNMENT.out.flagstat.collect { it -> it[1] })
-        .mix(ALIGNMENT.out.rseqc_bam_stat.collect { it -> it[1] }.ifEmpty([]))
         .mix(ALIGNMENT.out.rseqc_read_gc_xls.collect { it -> it[1] }.ifEmpty([]))
         .mix(ALIGNMENT.out.rseqc_read_dist.collect { it -> it[1] }.ifEmpty([]))
-        .mix(ALIGNMENT.out.rseqc_read_dup_pos_xls.collect { it -> it[1] }.ifEmpty([]))
-        .mix(ALIGNMENT.out.rseqc_junc_anno_log.collect { it -> it[1] }.ifEmpty([]))
-        .mix(ALIGNMENT.out.rseqc_junc_sat_rscript.collect { it -> it[1] }.ifEmpty([]))
         .mix(ALIGNMENT.out.rseqc_infer_exp.collect { it -> it[1] }.ifEmpty([]))
 
     multiqc_config_ch = file(params.multiqc_config, checkIfExists: true)
