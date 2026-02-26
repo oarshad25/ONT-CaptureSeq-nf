@@ -197,6 +197,7 @@ Command-line options for Minimap2 alignment. See [minimap2 options](https://lh3.
 | Parameter    | Type    | Description             | Default |
 | ------------ | ------- | ----------------------- | ------- |
 | `skip_rseqc` | boolean | skip read QC with RSeQC | false   |
+|`rseqc_housekeeping_bed`| string | Path to housekeeping genes bed file to be used by RSeQC geneBody_coverage module. Can be downloaded from RSeQC [repo](https://sourceforge.net/projects/rseqc/files/BED/Human_Homo_sapiens/). If not provided, this particular module is skipped.||
 
 #### Isoform Discovery and Quantification
 

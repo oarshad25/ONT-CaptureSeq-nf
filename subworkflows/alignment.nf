@@ -26,6 +26,7 @@ workflow ALIGNMENT {
     genome // path to genome fasta
     annotation // path to annotation gtf used by Minimap2
     rseqc_bed // path to annotation in bed format to be used by RSeQC
+    rseqc_housekeeping_bed // path to housekeeping gene bed for RSeQC gene body coverage module
     alignment_use_annotation // Boolean, whether to use gene annotation as input to Minimap2 to prioritise on annotated splice junctions
     skip_save_minimap2_index // Boolean, skip saving the minimap2 index. This flag controls whether to run indexing seperately
     minimap2_indexing_extra_opts // string, any additional options to pass to indexing process
@@ -123,17 +124,20 @@ workflow ALIGNMENT {
     rseqc_read_gc_xls_ch = Channel.empty()
     rseqc_read_dist_ch = Channel.empty()
     rseqc_infer_exp_ch = Channel.empty()
+    rseqc_genebody_coverage_txt_ch = Channel.empty()
 
     // calculate read distribution of aligned reads with RSeQC if parameter 'skip_resqc' is set
     if (!skip_rseqc) {
         // run RSeQC subworkflow
-        RSEQC(bambai_ch, rseqc_bed)
+        RSEQC(bambai_ch, rseqc_bed, rseqc_housekeeping_bed)
         // channel with xls files containing read GC content calculations
         rseqc_read_gc_xls_ch = RSEQC.out.read_gc_xls
         // channel with text files containing read distribution calculations
         rseqc_read_dist_ch = RSEQC.out.read_distribution_txt
         // channel with txt file containing results of infer_experiment module
         rseqc_infer_exp_ch = RSEQC.out.infer_experiment_txt
+        // channel with txt file containing results of gene body coverage module
+        rseqc_genebody_coverage_txt_ch = RSEQC.out.rseqc_genebody_coverage_txt
     }
 
     emit:
@@ -143,4 +147,5 @@ workflow ALIGNMENT {
     rseqc_read_gc_xls = rseqc_read_gc_xls_ch // RSeQC read GC content calculation xls file [val(meta), path(read_gc_xls)] or Channel.empty(), if skip_rseqc
     rseqc_read_dist = rseqc_read_dist_ch // RSeQC read distribution calculations [val(meta), path(read_dist_file)] or Channel.empty(), if skip_rseqc
     rseqc_infer_exp = rseqc_infer_exp_ch // RSeQC infer experiment module result [val(meta) path(infer_exp_txt)] or Channel.empty(), if skip_rseqc
+    rseqc_genebody_coverage_txt = rseqc_genebody_coverage_txt_ch // RSeQC gene body coverage module result [val(meta) path(genebody_coverage_txt)] or Channel.empty(), if skip_rseqc or no housekeeping gene bed provided
 }

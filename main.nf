@@ -261,12 +261,15 @@ workflow {
 
     minimap2_junc_bed_ch = file(params.minimap2_junc_bed, checkIfExists: true)
 
+    rseqc_housekeeping_bed_ch = file(params.rseqc_housekeeping_bed, checkIfExists: true)
+
     // align reads to genome with MiniMap and generate read QC statistics
     ALIGNMENT(
         qced_reads_ch,
         genome_ch,
         annotation_ch,
         annotation_bed_ch,
+        rseqc_housekeeping_bed_ch,
         params.alignment_use_annotation,
         params.skip_save_minimap2_index,
         params.minimap2_indexing_extra_opts,
@@ -296,6 +299,7 @@ workflow {
         .mix(ALIGNMENT.out.rseqc_read_gc_xls.collect { it -> it[1] }.ifEmpty([]))
         .mix(ALIGNMENT.out.rseqc_read_dist.collect { it -> it[1] }.ifEmpty([]))
         .mix(ALIGNMENT.out.rseqc_infer_exp.collect { it -> it[1] }.ifEmpty([]))
+        .mix(ALIGNMENT.out.rseqc_genebody_coverage_txt.collect { it -> it[1] }.ifEmpty([]))
 
     multiqc_config_ch = file(params.multiqc_config, checkIfExists: true)
 
