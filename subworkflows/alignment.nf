@@ -97,33 +97,11 @@ workflow ALIGNMENT {
     SAMTOOLS(MINIMAP2.out.sam)
 
     /*
-    * Use cramino for quality assessment of BAM files
+    * Use cramino for quality assessment of unfiltered BAM files
     */
-
-    // Alignment QC statistics are computed on unfiltered BAMs
 
     CRAMINO(SAMTOOLS.out.bambai)
 
-    /*
-    * Use RSeQC for alignment QC
-    */
-
-    //initialise empty channel to contain rseqc module outputs
-    rseqc_read_gc_xls_ch = Channel.empty()
-    rseqc_read_dist_ch = Channel.empty()
-    rseqc_infer_exp_ch = Channel.empty()
-
-    // calculate read distribution of aligned reads with RSeQC if parameter 'skip_resqc' is set
-    if (!skip_rseqc) {
-        // run RSeQC subworkflow
-        RSEQC(SAMTOOLS.out.bambai, rseqc_bed)
-        // channel with xls files containing read GC content calculations
-        rseqc_read_gc_xls_ch = RSEQC.out.read_gc_xls
-        // channel with text files containing read distribution calculations
-        rseqc_read_dist_ch = RSEQC.out.read_distribution_txt
-        // channel with txt file containing results of infer_experiment module
-        rseqc_infer_exp_ch = RSEQC.out.infer_experiment_txt
-    }
 
     /*
     * Optionally filter out secondary, supplementray and unmapped reads
@@ -135,6 +113,27 @@ workflow ALIGNMENT {
     }
     else {
         bambai_ch = SAMTOOLS.out.bambai
+    }
+
+    /*
+    * Use RSeQC for alignment QC if flag skip_rseqc is not set
+    */
+
+    //initialise empty channel to contain rseqc module outputs
+    rseqc_read_gc_xls_ch = Channel.empty()
+    rseqc_read_dist_ch = Channel.empty()
+    rseqc_infer_exp_ch = Channel.empty()
+
+    // calculate read distribution of aligned reads with RSeQC if parameter 'skip_resqc' is set
+    if (!skip_rseqc) {
+        // run RSeQC subworkflow
+        RSEQC(bambai_ch, rseqc_bed)
+        // channel with xls files containing read GC content calculations
+        rseqc_read_gc_xls_ch = RSEQC.out.read_gc_xls
+        // channel with text files containing read distribution calculations
+        rseqc_read_dist_ch = RSEQC.out.read_distribution_txt
+        // channel with txt file containing results of infer_experiment module
+        rseqc_infer_exp_ch = RSEQC.out.infer_experiment_txt
     }
 
     emit:
