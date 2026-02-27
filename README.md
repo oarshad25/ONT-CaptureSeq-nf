@@ -14,26 +14,24 @@ dependencies managed using [Docker](https://www.docker.com) or [Apptainer](https
       and [ucsc-genepredtobed](https://open.bioqueue.org/home/knowledge/showKnowledge/sig/ucsc-genepredtobed).
 2. Merge fastq files per sample and decompress  ([zcat](https://linux.die.net/man/1/zcat)).
 3. Drop any samples with small number of reads by filtering samples with read count below a threshold.
-4. Raw read QC ([NanoPlot](https://github.com/wdecoster/NanoPlot), [NanoComp](https://github.com/wdecoster/nanocomp) [MultiQC](https://multiqc.info/docs/)).
+4. Raw read QC ([NanoPlot](https://github.com/wdecoster/NanoPlot), [NanoComp](https://github.com/wdecoster/nanocomp), [seqkit stats](https://bioinf.shenwei.me/seqkit/usage/#stats)).
 5. Filter reads on length and quality ([seqkit seq](https://bioinf.shenwei.me/seqkit/usage/#seq); _optional_).
-    * Summary statistics of filtered reads.
+    * Summary statistics of filtered reads ([seqkit stats](https://bioinf.shenwei.me/seqkit/usage/#stats)).
 6. Preprocessing of cDNA reads with one of the following (_optional_):
     * Identify, orient and trim full-length reads ([pychopper](https://github.com/epi2me-labs/pychopper))
     * Reorient reads ([restrander](https://github.com/mritchielab/restrander)).
+
    Generate summary statistics on QC'ed reads with ([seqkit stats](https://bioinf.shenwei.me/seqkit/usage/#stats))
 7. Align reads to genome ([minimap2](https://github.com/lh3/minimap2))
     * Optionally prebuild minimap2 genome index.
     * Optionally use reference annotation to prioritise on known splice junctions.
-8. Sort, index alignments and generate alignment statistics ([samtools](https://www.htslib.org/doc/))
-9. Additional QC of aligned reads
-    * [Cramino](https://github.com/wdecoster/cramino).
-    * Optionally [RSeQC](https://rseqc.sourceforge.net).
-10. Summarise QC stats for processed fastq's and mapped reads ([MultiQC](https://multiqc.info/docs/)).
-11. Filter out unmapped, secondary and supplementary reads ([samtools](https://www.htslib.org/doc/)).
-12. Optionally, if a genelist of interest is provided, generate a subset of aligned reads to genes in the list.
-    * QC metrics of subset of aligned reads to assess quality of reads mapping to genes of interest (skipped for pychopper processed reads).
-13. Generate gene level count matrix with [featureCounts](https://subread.sourceforge.net/featureCounts.html).
-14. Transcript reconstruction and quantification ([IsoQuant](https://ablab.github.io/IsoQuant/) or [FLAIR](https://flair.readthedocs.io/en/latest/index.html)).
+8. Sort, index alignments and generate alignment statistics ([samtools](https://www.htslib.org/doc/), [Cramino](https://github.com/wdecoster/cramino))
+9. Optionally, filter out unmapped, secondary and supplementary reads ([samtools](https://www.htslib.org/doc/)).
+    * Optionally QC filtered reads with multiple [RSeQC](https://rseqc.sourceforge.net) modules.
+10. Summarise QC stats ([MultiQC](https://multiqc.info/docs/)).
+11. Optionally, if a genelist of interest is provided, generate a subset of aligned reads to genes in the list.
+12. Generate gene level count matrix with [featureCounts](https://subread.sourceforge.net/featureCounts.html).
+13. Transcript reconstruction and quantification ([IsoQuant](https://ablab.github.io/IsoQuant/) or [FLAIR](https://flair.readthedocs.io/en/latest/index.html)).
 
 ## Getting ONT-CaptureSeq-nf
 
@@ -110,9 +108,9 @@ file and include at least two columns named `id` and `fastqdir`
 
 The required parameters are as follows:
 
-| Parameter     | Type   | Description                                                                                                        | Default |
-| ------------- | ------ | ------------------------------------------------------------------------------------------------------------------ | ------- |
-| `inputdir`    | string | Path to parent read directory containing demultiplexed barcode subdirectories with fastq reads for each barcode OR |
+| Parameter     | Type   | Description | Default |
+| ------------- |------------------------------------------------------------------------------------------------------------------ | ------- |
+| `inputdir`    | string | Path to parent read directory containing demultiplexed barcode subdirectories with fastq reads for each barcode OR |   |
 | `samplesheet` | string | Path to sample manifest 'csv' file                                                                                 |
 | `genome`      | string | Path to reference genome FASTA to use for alignment.                                                               |
 | `annotation`  | string | Reference annotation as GTF.                                                                                       |
@@ -142,18 +140,18 @@ Options for configuring steps/tools in the workflow
 
 Options for further preprocessing of cDNA reads.
 
-| Parameter           | Type    | Description                                | Default                                |
+| Parameter | Type | Description | Default |
 | ------------------- | ------- | ------------------------------------------ | -------------------------------------- |
-| `run_cdna_qc` | boolean       | Whether to preprocess reads using a cDNA readQC tool | true |
-| `cdna_qc_method` | boolean       | Which tool to use for cDNA read QC/preprocessing. Options are `"pychopper"` or `"restrander"`. | `pychopper` |
+| `run_cdna_qc` | boolean | Whether to preprocess reads using a cDNA readQC tool | true |
+| `cdna_qc_method` | boolean | Which tool to use for cDNA read QC/preprocessing. Options are `"pychopper"` or `"restrander"`. | `pychopper` |
 
 ###### Pychopper (full length reads)
 
-| Parameter           | Type    | Description                                | Default                                |
+| Parameter | Type | Description | Default |
 | ------------------- | ------- | ------------------------------------------ | -------------------------------------- |
-| `pychopper_cdna_kit` | string  | kit name, pychopper -k option e.g. "PCS109" |  |
-| `pychopper_primer_fasta` | string | Path to primer sequences fasta, pychopper -b option |  |
-| `pychopper_backend` | string | Backend to be used by pychopper for identifying primers in input reads, pychopper -m option (phmm or edlib) | `"edlib"`|
+| `pychopper_cdna_kit` | string | kit name, pychopper -k option e.g. "PCS109" | |
+| `pychopper_primer_fasta` | string | Path to primer sequences fasta, pychopper -b option | |
+| `pychopper_backend` | string | Backend to be used by pychopper for identifying primers in input reads, pychopper -m option (phmm or edlib) | `"edlib"` |
 | `pychopper_extra_opts` | string | Any extra command line options to pass to pychopper e.g. `"-p"` to keep primers | |
 
 If neither `pychopper_cdna_kit` nor `pychopper_primer_fasta` is provided, pychopper default (kit PCS109) is used.
@@ -194,10 +192,10 @@ Command-line options for Minimap2 alignment. See [minimap2 options](https://lh3.
 
 ##### RSeQC
 
-| Parameter    | Type    | Description             | Default |
+| Parameter | Type | Description | Default |
 | ------------ | ------- | ----------------------- | ------- |
-| `skip_rseqc` | boolean | skip read QC with RSeQC | false   |
-|`rseqc_housekeeping_bed`| string | Path to housekeeping genes bed file to be used by RSeQC geneBody_coverage module. Can be downloaded from RSeQC [repo](https://sourceforge.net/projects/rseqc/files/BED/Human_Homo_sapiens/). If not provided, this particular module is skipped.||
+| `skip_rseqc` | boolean | skip read QC with RSeQC | false |
+| `rseqc_housekeeping_bed` | string | Path to housekeeping genes bed file to be used by RSeQC geneBody_coverage module. Can be downloaded from RSeQC [repo](https://sourceforge.net/projects/rseqc/files/BED/Human_Homo_sapiens/). If not provided, this particular module is skipped. | |
 
 #### Isoform Discovery and Quantification
 
