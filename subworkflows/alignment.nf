@@ -126,8 +126,8 @@ workflow ALIGNMENT {
     rseqc_infer_exp_ch = Channel.empty()
     rseqc_genebody_coverage_txt_ch = Channel.empty()
 
-    // calculate read distribution of aligned reads with RSeQC if parameter 'skip_resqc' is set
-    if (!skip_rseqc) {
+    // calculate read distribution of filtered aligned reads with RSeQC if alignment filtering is on and parameter 'skip_resqc' is set
+    if (filter_alignments && !skip_rseqc) {
         // run RSeQC subworkflow
         RSEQC(bambai_ch, rseqc_bed, rseqc_housekeeping_bed)
         // channel with xls files containing read GC content calculations
