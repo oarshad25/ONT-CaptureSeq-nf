@@ -11,7 +11,7 @@ include { CONCAT_FASTQ } from "./modules/concat_fastq"
 include { FILTER_READS } from "./modules/filter_reads"
 include { NANOPLOT } from "./modules/nanoplot"
 include { NANOCOMP } from "./modules/nanocomp"
-include { SEQKIT_STATS as SEQKIT_STATS_RAW ; SEQKIT_STATS as SEQKIT_STATS_FILTERED ; SEQKIT_STATS as SEQKIT_STATS_QCED } from "./modules/seqkit_stats.nf"
+include { SEQKIT_STATS as SEQKIT_STATS_FILTERED ; SEQKIT_STATS as SEQKIT_STATS_QCED } from "./modules/seqkit_stats.nf"
 include { RESTRANDER } from "./modules/restrander"
 include { PYCHOPPER } from "./modules/pychopper"
 include { MULTIQC } from "./modules/multiqc"
@@ -152,17 +152,13 @@ workflow {
     // filter out samples in the channel with less than `params.min_reads_per_sample` reads
     // this is mainly to get rid of unassigned barcodes
 
-    // channel containing the merged fastq for samples that pass read count filter
-    // [meta, fastq]
-    // reads_ch = CONCAT_FASTQ.out.merged_reads
-    //     .map { meta, fastq -> [meta, fastq, fastq.countFastq()] }
-    //     .filter { _meta, _fastq, numreads -> numreads > params.min_reads_per_sample }
-    //     .map { meta, fastq, _numreads -> tuple(meta, fastq) }
-
-    DROP_FASTQS_ON_READ_COUNT(CONCAT_FASTQ.out.merged_reads, params.min_reads_per_sample, "input")
+    DROP_FASTQS_ON_READ_COUNT(CONCAT_FASTQ.out.merged_reads, params.min_reads_per_sample, "raw")
 
     // channel containing the fastqs for samples that pass read count filter
-    reads_ch = DROP_FASTQS_ON_READ_COUNT.out
+    reads_ch = DROP_FASTQS_ON_READ_COUNT.out.passed_reads_ch
+
+    // channel containing the seqkit stats tsv for samples that pass read count filter
+    seqkit_stats_raw_ch = DROP_FASTQS_ON_READ_COUNT.out.seqkit_stats_ch
 
     /*
     * QC on raw reads
@@ -184,10 +180,8 @@ workflow {
 
     NANOCOMP(sorted_reads_ch.collect { it -> it[1] }, "raw")
 
-    // seqkit stats on raw reads for final multiqc report
-    SEQKIT_STATS_RAW(reads_ch, "raw")
-
-    multiqc_input_files_ch = multiqc_input_files_ch.mix(SEQKIT_STATS_RAW.out.stats.collect { it -> it[1] })
+    // add seqkit stats on raw reads to multiqc input files channel
+    multiqc_input_files_ch = multiqc_input_files_ch.mix(seqkit_stats_raw_ch.collect { it -> it[1] })
 
     /*
     * Filter raw reads
