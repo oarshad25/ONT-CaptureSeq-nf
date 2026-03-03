@@ -1,6 +1,6 @@
 // take sorted and indexed bams and count reads overlapping genes
 process SUBREAD_FEATURECOUNTS {
-    label "medium"
+    label "low"
 
     publishDir "${params.outdir}/featurecounts/", mode: "copy"
 
@@ -10,21 +10,21 @@ process SUBREAD_FEATURECOUNTS {
         : 'quay.io/biocontainers/subread:2.0.6--he4a0461_2'}"
 
     input:
-    // list of sorted bam files
-    path bams
-    // list of corresponding bam indexes
-    path bais
+    // sorted and indexed bam file
+    tuple val(meta), path(bam), path(bai)
+
     // annotation gtf
     path annotation
 
     output:
-    path "gene_counts.txt"
+    tuple val(meta), path("*geneCounts.txt"), emit: counts
+    tuple val(meta), path("*geneCounts.txt.summary"), emit: summary
 
     script:
     """
     featureCounts \\
         -a ${annotation} \\
-        -o gene_counts.txt \\
+        -o "${meta.id}.geneCounts.txt" \\
         -L \\
         -t exon \\
         -g gene_id \\
@@ -32,6 +32,6 @@ process SUBREAD_FEATURECOUNTS {
         --fraction \\
         -O \\
         -T ${task.cpus} \\
-        ${bams}
+        ${bam}
     """
 }

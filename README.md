@@ -28,9 +28,9 @@ dependencies managed using [Docker](https://www.docker.com) or [Apptainer](https
 8. Sort, index alignments and generate alignment statistics ([samtools](https://www.htslib.org/doc/), [Cramino](https://github.com/wdecoster/cramino))
 9. Optionally, filter out unmapped, secondary and supplementary reads ([samtools](https://www.htslib.org/doc/)).
     * Optionally QC filtered reads with multiple [RSeQC](https://rseqc.sourceforge.net) modules.
-10. Summarise QC stats ([MultiQC](https://multiqc.info/docs/)).
-11. Optionally, if a genelist of interest is provided, generate a subset of aligned reads to genes in the list.
-12. Generate gene level count matrix with [featureCounts](https://subread.sourceforge.net/featureCounts.html).
+10. Optionally, if a genelist of interest is provided, generate a subset of aligned reads to genes in the list.
+11. Generate gene level counts with [featureCounts](https://subread.sourceforge.net/featureCounts.html).
+12. Summarise QC stats ([MultiQC](https://multiqc.info/docs/)).
 13. Transcript reconstruction and quantification ([IsoQuant](https://ablab.github.io/IsoQuant/) or [FLAIR](https://flair.readthedocs.io/en/latest/index.html)).
 
 ## Getting ONT-CaptureSeq-nf
@@ -108,12 +108,12 @@ file and include at least two columns named `id` and `fastqdir`
 
 The required parameters are as follows:
 
-| Parameter     | Type   | Description | Default |
-| ------------- |------------------------------------------------------------------------------------------------------------------ | ------- |
-| `inputdir`    | string | Path to parent read directory containing demultiplexed barcode subdirectories with fastq reads for each barcode OR |   |
-| `samplesheet` | string | Path to sample manifest 'csv' file                                                                                 |
-| `genome`      | string | Path to reference genome FASTA to use for alignment.                                                               |
-| `annotation`  | string | Reference annotation as GTF.                                                                                       |
+| Parameter     | Type   | Description                                                                                                        | Default |
+| ------------- |--------| ------------------------------------------------------------------------------------------------------------------ | ------- |
+| `inputdir`    | string | Path to parent read directory containing demultiplexed barcode subdirectories with fastq reads for each barcode OR |         |
+| `samplesheet` | string | Path to sample manifest 'csv' file                                                                                 |         |
+| `genome`      | string | Path to reference genome FASTA to use for alignment.                                                               |         |
+| `annotation`  | string | Reference annotation as GTF.                                                                                       |         |
 
 ### Optional parameters
 

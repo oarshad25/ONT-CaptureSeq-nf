@@ -16,6 +16,7 @@ include { RESTRANDER } from "./modules/restrander"
 include { PYCHOPPER } from "./modules/pychopper"
 include { MULTIQC } from "./modules/multiqc"
 include { SUBREAD_FEATURECOUNTS } from "./modules/subread_featurecounts.nf"
+include { MERGE_FEATURECOUNTS } from "./modules/merge_featurecounts.nf"
 include { ISOQUANT } from "./modules/isoquant"
 include { ISOQUANT_VISUALIZE } from "./modules/isoquant_visualize"
 include { MERGE_BAMS } from "./modules/merge_bams"
@@ -283,10 +284,6 @@ workflow {
     // aligned reads, sorted and indexed bam: [val(meta), path(bam), path(bai)]
     aligned_reads_ch = ALIGNMENT.out.bambai
 
-    /*
-    * Alignment MultiQC report
-    */
-
     // add qc files from alignment subworkflow to multiqc input channel
     multiqc_input_files_ch = multiqc_input_files_ch
         .mix(ALIGNMENT.out.flagstat.collect { it -> it[1] })
@@ -295,9 +292,6 @@ workflow {
         .mix(ALIGNMENT.out.rseqc_infer_exp.collect { it -> it[1] }.ifEmpty([]))
         .mix(ALIGNMENT.out.rseqc_genebody_coverage_txt.collect { it -> it[1] }.ifEmpty([]))
 
-    multiqc_config_ch = file(params.multiqc_config, checkIfExists: true)
-
-    MULTIQC(multiqc_input_files_ch.collect(), multiqc_config_ch, "aligned")
 
     /*
     * GENERATE ALIGNMENT SUBSET
@@ -319,11 +313,21 @@ workflow {
     * Gene counts matrix with featurecounts
     */
 
-    SUBREAD_FEATURECOUNTS(
-        aligned_reads_ch.collect { it -> it[1] },
-        aligned_reads_ch.collect { it -> it[2] },
-        annotation_ch,
-    )
+    SUBREAD_FEATURECOUNTS(aligned_reads_ch, annotation_ch)
+
+    // add summary files from featurecounts to multiqc input channel
+    multiqc_input_files_ch = multiqc_input_files_ch.mix(SUBREAD_FEATURECOUNTS.out.summary.collect { it -> it[1] }.ifEmpty([]))
+
+    // merge counts into a single table
+    MERGE_FEATURECOUNTS(SUBREAD_FEATURECOUNTS.out.counts.collect { it -> it[1] })
+
+    /*
+    * MultiQC report
+    */
+
+    multiqc_config_ch = file(params.multiqc_config, checkIfExists: true)
+
+    MULTIQC(multiqc_input_files_ch.collect(), multiqc_config_ch, "final")
 
     /*
     * ISOFORM DISCOVERY
