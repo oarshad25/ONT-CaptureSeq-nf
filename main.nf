@@ -258,6 +258,12 @@ workflow {
 
     rseqc_housekeeping_bed_ch = file(params.rseqc_housekeeping_bed, checkIfExists: true)
 
+    // set the -u argument for Minimap2
+    // If params.minimap2_u is provided, set it to this
+    // If not and run_cdna_qc is set, then strand orientation is known after pychopper/restrander processing, defaulting to -u f (forward-strand cDNA)
+    // Otherwise use minimap2 default (empty string passed to alignment workflow uses Minimap2 default)
+    minimap2_u = params.minimap2_u ? params.minimap2_u : params.run_cdna_qc ? "f" : ""
+
     // align reads to genome with MiniMap and generate read QC statistics
     ALIGNMENT(
         qced_reads_ch,
@@ -271,7 +277,7 @@ workflow {
         minimap2_junc_bed_ch,
         params.minimap2_x,
         params.minimap2_k,
-        params.minimap2_u,
+        minimap2_u,
         params.minimap2_G,
         params.minimap2_I,
         params.minimap2_cs,
