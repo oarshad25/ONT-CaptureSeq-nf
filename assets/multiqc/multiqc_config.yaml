@@ -23,7 +23,7 @@ module_order:
         - "*qced_seqkit_stats.tsv"
   - samtools
   - rseqc
-  - featureCounts
+  - featurecounts
 
 extra_fn_clean_exts:
   - type: remove
