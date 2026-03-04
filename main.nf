@@ -5,6 +5,7 @@ include { helpMessage } from "./lib/helpMessage"
 include { checkParams } from "./lib/checkParams"
 include { pipelineHeader } from "./lib/pipelineHeader"
 include { findFastqFiles } from "./lib/utilities.nf"
+include { resolveFeatureCountsStrand } from "./lib/utilities.nf"
 
 // include process modules
 include { CONCAT_FASTQ } from "./modules/concat_fastq"
@@ -319,7 +320,10 @@ workflow {
     * Gene counts matrix with featurecounts
     */
 
-    SUBREAD_FEATURECOUNTS(aligned_reads_ch, annotation_ch)
+    // set strand argument for featureCounts
+    featurecounts_s = resolveFeatureCountsStrand(params)
+
+    SUBREAD_FEATURECOUNTS(aligned_reads_ch, annotation_ch, featurecounts_s)
 
     // add summary files from featurecounts to multiqc input channel
     multiqc_input_files_ch = multiqc_input_files_ch.mix(SUBREAD_FEATURECOUNTS.out.summary.collect { it -> it[1] }.ifEmpty([]))

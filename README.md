@@ -197,6 +197,12 @@ Command-line options for Minimap2 alignment. See [minimap2 options](https://lh3.
 | `skip_rseqc` | boolean | skip read QC with RSeQC | false |
 | `rseqc_housekeeping_bed` | string | Path to housekeeping genes bed file to be used by RSeQC geneBody_coverage module. Can be downloaded from RSeQC [repo](https://sourceforge.net/projects/rseqc/files/BED/Human_Homo_sapiens/). If not provided, this particular module is skipped. | |
 
+#### FeatureCounts
+
+| Parameter                       | Type    | Description                                                                                                                                                                                   | Default |
+| ------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `featurecounts_s`               | integer | FeatureCounts `-s` (strand option) e.g `1`. If provided, value supplied is used. If this parameter isn't provided (null or empty string) and `run_cdna_qc` flag is set (pipeline default) then reads are reoriented during cdna read QC and hence this argument is set to `1` (forward strand), otherwise featureCounts default (`0`) is used    | `1` if `run_cdna_qc` else featureCounts default |
+
 #### Isoform Discovery and Quantification
 
 | Parameter                  | Type    | Description                                                                       | Default      |

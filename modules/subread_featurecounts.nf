@@ -16,6 +16,9 @@ process SUBREAD_FEATURECOUNTS {
     // annotation gtf
     path annotation
 
+    // strand flag (-s option)
+    val s
+
     output:
     tuple val(meta), path("*geneCounts.txt"), emit: counts
     tuple val(meta), path("*geneCounts.txt.summary"), emit: summary
@@ -24,6 +27,7 @@ process SUBREAD_FEATURECOUNTS {
     """
     featureCounts \\
         -a ${annotation} \\
+        -s ${s} \\
         -o "${meta.id}.geneCounts.txt" \\
         -L \\
         -t exon \\
