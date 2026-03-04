@@ -1,13 +1,20 @@
-// Align to reference genome with minimap2
+/*
+* Align reads to the reference with minimap2 and directly stream SAM output
+* into samtools sort to produce sorted BAM, BAM index and flagstat metrics.
+*/
 
-process MINIMAP2 {
+process MINIMAP2_SAMTOOLS {
     tag "${meta.id}"
+
     label 'medium'
 
-    conda "bioconda::minimap2=2.28"
+    publishDir "${params.outdir}/bam/unfiltered/", mode: "link"
+
+    conda "bioconda::minimap2=2.30 bioconda::samtools=1.23"
+
     container "${workflow.containerEngine == 'apptainer'
-        ? 'https://depot.galaxyproject.org/singularity/minimap2:2.28--h577a1d6_4'
-        : 'quay.io/biocontainers/minimap2:2.28--h577a1d6_4'}"
+        ? 'oras://community.wave.seqera.io/library/minimap2_samtools:a81ff6397062f3f9'
+        : 'community.wave.seqera.io/library/minimap2_samtools:f2e55a1cd407fcaf'}"
 
     input:
     // input reads to align
@@ -44,7 +51,11 @@ process MINIMAP2 {
     val extra_opts
 
     output:
-    tuple val(meta), path("${meta.id}.sam"), emit: sam
+    // sorted and indexed bam
+    tuple val(meta), path("${meta.id}.bam"), path("${meta.id}.bam.bai"), emit: bambai
+
+    // flagstats
+    tuple val(meta), path("${meta.id}.flagstat.txt"), emit: flagstat
 
     script:
     def preset_flag = x ? "-x ${x}" : "-x splice"
@@ -71,6 +82,14 @@ process MINIMAP2 {
         ${junc_bed_flag} \\
         ${junc_bonus_flag} \\
         ${genome} \\
-        ${fastq} > ${meta.id}.sam
+        ${fastq} | \\
+    # convert SAM to BAM
+    samtools sort -@ ${task.cpus} -O bam -o ${meta.id}.bam -
+
+    # index BAM
+    samtools index -@ ${task.cpus} ${meta.id}.bam
+
+    # post-mapping QC
+    samtools flagstat -@ ${task.cpus} ${meta.id}.bam > ${meta.id}.flagstat.txt
     """
 }

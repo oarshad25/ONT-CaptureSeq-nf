@@ -4,17 +4,15 @@
 Alignment subworkflow
 
 * Align input reads to input genome optionally using input annotation or junction bed file
-* Convert alignment output to sam to sorted BAM with samtools and index
-  and generate alignment statistics with flagstat
-* Generate aligned reads length and quality histograms with seqkit bam
-* Optionally calculate read statistics with RSeQC
+* Generate sorted/indexed BAM and flagstat with samtools
+* QC of aligned reads with cramino
 * Optionally filter alignments to primary only (remove secondary, supplementary and unmapped reads)
+* Optionally calculate read statistics with RSeQC
 */
 
 include { MINIMAP2_INDEX } from "../modules/minimap2_index"
 include { MINIMAP2_PAFTOOLS_GFF2BED } from "../modules/minimap2_paftools_gff2bed"
-include { MINIMAP2 } from "../modules/minimap2"
-include { SAMTOOLS } from "../modules/samtools"
+include { MINIMAP2_SAMTOOLS } from "../modules/minimap2_samtools"
 include { CRAMINO } from "../modules/cramino"
 include { FILTER_ALIGNMENTS } from "../modules/filter_alignments"
 
@@ -64,7 +62,7 @@ workflow ALIGNMENT {
     }
 
     /*
-    * Align reads to the genome with MiniMap2
+    * Align reads to the genome with MiniMap2 and generate sorted/indexed BAM + flagstats
     */
 
     // if flag to use input annotation in alignment is set, convert annotation to bed using Minimap's utility
@@ -74,7 +72,7 @@ workflow ALIGNMENT {
         minimap2_junc_bed = MINIMAP2_PAFTOOLS_GFF2BED.out.bed12
     }
 
-    MINIMAP2(
+    MINIMAP2_SAMTOOLS(
         reads,
         ch_minimap2_ref,
         minimap2_junc_bed,
@@ -89,19 +87,10 @@ workflow ALIGNMENT {
     )
 
     /*
-    Use samtools to:
-     * convert aligned reads from SAM to BAM
-     * sort and index BAM
-     * generate alignment statistics
-    */
-
-    SAMTOOLS(MINIMAP2.out.sam)
-
-    /*
     * Use cramino for quality assessment of unfiltered BAM files
     */
 
-    CRAMINO(SAMTOOLS.out.bambai)
+    CRAMINO(MINIMAP2_SAMTOOLS.out.bambai)
 
 
     /*
@@ -109,11 +98,11 @@ workflow ALIGNMENT {
     */
 
     if (filter_alignments) {
-        FILTER_ALIGNMENTS(SAMTOOLS.out.bambai)
+        FILTER_ALIGNMENTS(MINIMAP2_SAMTOOLS.out.bambai)
         bambai_ch = FILTER_ALIGNMENTS.out.filtered_bambai
     }
     else {
-        bambai_ch = SAMTOOLS.out.bambai
+        bambai_ch = MINIMAP2_SAMTOOLS.out.bambai
     }
 
     /*
@@ -142,7 +131,7 @@ workflow ALIGNMENT {
 
     emit:
     bambai = bambai_ch // sorted and indexed reads (optionally filtered to mapped only): [val(meta), path(bam), path(bai)]
-    flagstat = SAMTOOLS.out.flagstat // alignment flagstats [val(meta), path(flagstat_file)]
+    flagstat = MINIMAP2_SAMTOOLS.out.flagstat // alignment flagstats [val(meta), path(flagstat_file)]
     cramino_stats = CRAMINO.out.stats_txt // cramino bam stats [val(meta), path(cramino_stat_file)]
     rseqc_read_gc_xls = rseqc_read_gc_xls_ch // RSeQC read GC content calculation xls file [val(meta), path(read_gc_xls)] or Channel.empty(), if skip_rseqc
     rseqc_read_dist = rseqc_read_dist_ch // RSeQC read distribution calculations [val(meta), path(read_dist_file)] or Channel.empty(), if skip_rseqc

@@ -6,10 +6,10 @@
 process MINIMAP2_INDEX {
     label 'medium'
 
-    conda "bioconda::minimap2=2.28"
+    conda "bioconda::minimap2=2.30 bioconda::samtools=1.23"
     container "${workflow.containerEngine == 'apptainer'
-        ? 'https://depot.galaxyproject.org/singularity/minimap2:2.28--h577a1d6_4'
-        : 'quay.io/biocontainers/minimap2:2.28--h577a1d6_4'}"
+        ? 'oras://community.wave.seqera.io/library/minimap2_samtools:a81ff6397062f3f9'
+        : 'community.wave.seqera.io/library/minimap2_samtools:f2e55a1cd407fcaf'}"
 
     input:
     // genome fasta file

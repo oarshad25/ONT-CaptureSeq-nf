@@ -9,10 +9,10 @@ This module uses Minimap's paftools scripts gff2bed utility to do the conversion
 process MINIMAP2_PAFTOOLS_GFF2BED {
     label 'low'
 
-    conda "bioconda::minimap2=2.28"
+    conda "bioconda::minimap2=2.30 bioconda::samtools=1.23"
     container "${workflow.containerEngine == 'apptainer'
-        ? 'https://depot.galaxyproject.org/singularity/minimap2:2.28--h577a1d6_4'
-        : 'quay.io/biocontainers/minimap2:2.28--h577a1d6_4'}"
+        ? 'oras://community.wave.seqera.io/library/minimap2_samtools:a81ff6397062f3f9'
+        : 'community.wave.seqera.io/library/minimap2_samtools:f2e55a1cd407fcaf'}"
 
     input:
     // path to annotation gtf
