@@ -28,13 +28,12 @@ dependencies managed using [Docker](https://www.docker.com) or [Apptainer](https
 8. Sort, index alignments and generate alignment statistics ([samtools](https://www.htslib.org/doc/), [Cramino](https://github.com/wdecoster/cramino))
 9. Optionally, filter out unmapped, secondary and supplementary reads ([samtools](https://www.htslib.org/doc/)).
     * Optionally QC filtered reads with multiple [RSeQC](https://rseqc.sourceforge.net) modules.
-10. Optionally, if a genelist of interest is provided, generate a subset of aligned reads to genes in the list.
-11. Generate gene level counts with [featureCounts](https://subread.sourceforge.net/featureCounts.html).
-12. Calculate panel metrics:
+10. Generate gene level counts with [featureCounts](https://subread.sourceforge.net/featureCounts.html).
+11. Calculate panel metrics:
     * On-target rate: Calculate proportion of reads mapping to genes in Capture panel
     * Select-gene stats: Number of reads and N50 for reads mapping to each gene in a few select genes.
-13. Summarise QC stats ([MultiQC](https://multiqc.info/docs/)).
-14. Transcript reconstruction and quantification ([IsoQuant](https://ablab.github.io/IsoQuant/) or [FLAIR](https://flair.readthedocs.io/en/latest/index.html)).
+12. Summarise QC stats ([MultiQC](https://multiqc.info/docs/)).
+13. Transcript reconstruction and quantification ([IsoQuant](https://ablab.github.io/IsoQuant/) or [FLAIR](https://flair.readthedocs.io/en/latest/index.html)).
 
 ## Getting ONT-CaptureSeq-nf
 
@@ -175,7 +174,6 @@ If neither `pychopper_cdna_kit` nor `pychopper_primer_fasta` is provided, pychop
 | ------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
 | `alignment_use_annotation`      | boolean | Minimap2 can optionally take annotated genes as input. This parameter selects whether to use reference annotation in Minimap2 alignment as input to prioritise on annotated splice junctions. | false   |
 | `filter_alignments`             | boolean | Whether to filter alignment bams to remove secondary, supplementary and unmapped reads                                                                                                        | true    |
-| `genelist_to_subset_alignments` | string  | Path to optional file containing list of gene id's, one per line. If this file is provided, a subset of the filtered aligned bams is generated that overlaps genes in this list               |         |
 
 ##### MiniMap2
 

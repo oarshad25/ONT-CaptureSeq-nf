@@ -27,7 +27,6 @@ include { PREPARE_REFERENCE_FILES } from "./subworkflows/prepare_reference_files
 include { DROP_FASTQS_ON_READ_COUNT } from "./subworkflows/drop_fastqs_on_read_count"
 include { ALIGNMENT } from "./subworkflows/alignment"
 include { PANEL_METRICS } from "./subworkflows/panel_metrics.nf"
-include { SUBSET_ALIGNMENTS } from "./subworkflows/subset_alignments.nf"
 include { FLAIR } from "./subworkflows/flair"
 
 workflow {
@@ -300,22 +299,6 @@ workflow {
         .mix(ALIGNMENT.out.rseqc_infer_exp.collect { it -> it[1] }.ifEmpty([]))
         .mix(ALIGNMENT.out.rseqc_genebody_coverage_txt.collect { it -> it[1] }.ifEmpty([]))
 
-
-    /*
-    * GENERATE ALIGNMENT SUBSET
-    */
-
-    // generate a subset of the alignments to genes in a given list if provided
-    // QC the subset reads to get handle on statistics of reads mapping to genes of interest
-
-    if (params.genelist_to_subset_alignments) {
-
-        // create channel from input genelist
-        genelist_to_subset_alignments_ch = file(params.genelist_to_subset_alignments, checkIfExists: true)
-
-        // subset alignments to genes in list
-        SUBSET_ALIGNMENTS(aligned_reads_ch, annotation_ch, genelist_to_subset_alignments_ch)
-    }
 
     /*
     * Gene counts matrix with featurecounts
