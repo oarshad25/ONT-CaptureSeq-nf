@@ -26,6 +26,7 @@ include { MERGE_BAMS } from "./modules/merge_bams"
 include { PREPARE_REFERENCE_FILES } from "./subworkflows/prepare_reference_files"
 include { DROP_FASTQS_ON_READ_COUNT } from "./subworkflows/drop_fastqs_on_read_count"
 include { ALIGNMENT } from "./subworkflows/alignment"
+include { PANEL_METRICS } from "./subworkflows/panel_metrics.nf"
 include { SUBSET_ALIGNMENTS } from "./subworkflows/subset_alignments.nf"
 include { FLAIR } from "./subworkflows/flair"
 
@@ -330,6 +331,22 @@ workflow {
 
     // merge counts into a single table
     MERGE_FEATURECOUNTS(SUBREAD_FEATURECOUNTS.out.counts.collect { it -> it[1] })
+
+    /*
+    * Compute metrics for genes in the target panel
+    */
+
+    // create channels with text files of
+    // * list of panel genes to calculate capture efficiency
+    // * a few select genes in target panel whose read count and N50 is to be included in multiqc report
+    panel_gene_list_ch = file(params.panel_gene_list, checkIfExists: true)
+    select_gene_list_ch = file(params.select_gene_list, checkIfExists: true)
+
+    if (panel_gene_list_ch.name != 'NO_FILE') {
+        PANEL_METRICS(aligned_reads_ch, annotation_ch, panel_gene_list_ch, select_gene_list_ch, MERGE_FEATURECOUNTS.out)
+
+        multiqc_input_files_ch = multiqc_input_files_ch.mix(PANEL_METRICS.out.multiqc_files.collect().ifEmpty([]))
+    }
 
     /*
     * MultiQC report

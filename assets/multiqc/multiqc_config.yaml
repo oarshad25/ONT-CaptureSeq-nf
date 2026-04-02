@@ -24,6 +24,15 @@ module_order:
   - samtools
   - rseqc
   - featurecounts
+  - custom_content
+
+custom_content:
+  order:
+    - capture_on_target
+
+report_section_order:
+  capture_on_target:
+    after: featurecounts_assignments
 
 extra_fn_clean_exts:
   - type: remove
