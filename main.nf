@@ -26,7 +26,7 @@ include { MERGE_BAMS } from "./modules/merge_bams"
 include { PREPARE_REFERENCE_FILES } from "./subworkflows/prepare_reference_files"
 include { DROP_FASTQS_ON_READ_COUNT } from "./subworkflows/drop_fastqs_on_read_count"
 include { ALIGNMENT } from "./subworkflows/alignment"
-include { PANEL_METRICS } from "./subworkflows/panel_metrics.nf"
+include { CAPTURESEQ_METRICS } from "./subworkflows/captureseq_metrics.nf"
 include { FLAIR } from "./subworkflows/flair"
 
 workflow {
@@ -316,19 +316,27 @@ workflow {
     MERGE_FEATURECOUNTS(SUBREAD_FEATURECOUNTS.out.counts.collect { it -> it[1] })
 
     /*
-    * Compute metrics for genes in the target panel
+    * Compute CaptureSeq metrics
     */
 
-    // create channels with text files of
-    // * list of panel genes to calculate capture efficiency
+    // Assess CaptureSeq assay performance by calculating:
+    // * On-target/off target read counts: What porportion of reads overlap the genomic intervals of genes in the capture panel
+    // * Read support for genes of interest (GOIs):
+    //  * Read count and N50 of reads overlapping GOIs in the capture panel:
+    //    Did my GOIs receive enough long reads? Tells us about Capture efficiency for specific genes.
+    //    Low N50 means read are too short, likely degradation or premature termination.
+    //  * Full length read count: Do reads span the full genomic extent of longest transcript isoform? Is Captureseq achieving full length coverage
+
+    // Create channels with text files of
+    // * list of panel genes to calculate capture efficiency (on/off target read counts)
     // * a few select genes in target panel whose read count and N50 is to be included in multiqc report
     panel_gene_list_ch = file(params.panel_gene_list, checkIfExists: true)
-    select_gene_list_ch = file(params.select_gene_list, checkIfExists: true)
+    goi_gene_list_ch = file(params.goi_gene_list, checkIfExists: true)
 
     if (panel_gene_list_ch.name != 'NO_FILE') {
-        PANEL_METRICS(aligned_reads_ch, annotation_ch, panel_gene_list_ch, select_gene_list_ch, MERGE_FEATURECOUNTS.out)
+        CAPTURESEQ_METRICS(aligned_reads_ch, annotation_ch, panel_gene_list_ch, goi_gene_list_ch, params.goi_fulllength_margin)
 
-        multiqc_input_files_ch = multiqc_input_files_ch.mix(PANEL_METRICS.out.multiqc_files.collect().ifEmpty([]))
+        multiqc_input_files_ch = multiqc_input_files_ch.mix(CAPTURESEQ_METRICS.out.multiqc_files.collect().ifEmpty([]))
     }
 
     /*
