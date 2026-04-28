@@ -46,13 +46,31 @@ def parse_args():
 MQC_HEADER_TEMPLATE = """\
 # id: 'goi_summary'
 # section_name: 'Genes of Interest — Summary'
-# description: 'Read count, read N50, and transcript-boundary-spanning read count per gene of interest locus.'
+# description: 'Read count, percentage of total primary mapped reads, read N50, and transcript-boundary-spanning read count per gene of interest locus.'
 # format: 'tsv'
 # plot_type: 'table'
 # pconfig:
 #   id: 'goi_summary_table'
 #   title: 'Genes of Interest Summary'
 """
+
+
+def write_column_headers(out, cols):
+    """
+    Write MultiQC table header config in the same order as the TSV columns.
+
+    MultiQC tables default to one decimal place, which hides small
+    percentages. Defining all headers preserves the input column order.
+    """
+    out.write("# headers:\n")
+    for col in cols:
+        out.write(f"#   {col}:\n")
+        out.write(f"#     title: '{col}'\n")
+        if col.startswith("pct_total_primary_mapped_"):
+            out.write("#     format: '{:,.4f}'\n")
+            out.write("#     suffix: '%'\n")
+        else:
+            out.write("#     format: '{:,.0f}'\n")
 
 
 def read_wide_tsv(path):
@@ -157,6 +175,7 @@ def main():
 
     with open(args.output, "w") as out:
         out.write(MQC_HEADER_TEMPLATE)
+        write_column_headers(out, cols)
         out.write("Sample\t"    + "\t".join(cols) + "\n")
         out.write(args.sample + "\t" + "\t".join(merged[c] for c in cols) + "\n")
 
