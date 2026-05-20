@@ -23,6 +23,8 @@ def helpMessage() {
         Optional Arguments:
         -------------------
         --outdir <path>                             Path to output directory.
+        --transcriptome <path>                      Optional transcriptome FASTA to enable Oarfish transcript
+                                                    quantification.
 
         Additional Options:
         -------------------
@@ -61,6 +63,22 @@ def helpMessage() {
 
         Alignment additional:
         --filter_bam_mapped <Boolean>               Whether to filter alignment BAM to mapped reads only
+
+        CAPTURESEQ METRICS:
+        ------
+
+        --goi_fulllength_margin <integer>           Margin for counting reads spanning transcript boundaries
+                                                    for genes of interest.
+
+        OARFISH TRANSCRIPT QUANTIFICATION:
+        ------
+
+        --oarfish_seq_tech <string>                 Oarfish sequencing technology option.
+                                                    Options: 'ont-cdna', 'ont-drna', 'pac-bio', 'pac-bio-hifi'.
+        --oarfish_filter_group <string>             Oarfish filter group. Options: 'no-filters' or
+                                                    'nanocount-filters'.
+        --oarfish_model_coverage <Boolean>          Pass --model-coverage to Oarfish.
+        --oarfish_extra_opts <string>               Any additional command line options to pass to Oarfish.
 
         ISOFORM DISCOVERY:
         ------

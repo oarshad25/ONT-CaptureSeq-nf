@@ -17,6 +17,7 @@ def pipelineHeader() {
         Genome FASTA                : ${params.genome}
         Genome Annotation GTF       : ${params.annotation}
         Results Directory           : ${params.outdir}
+        Transcriptome FASTA         : ${params.transcriptome}
         =======================================================================================
         """.stripIndent()
     )

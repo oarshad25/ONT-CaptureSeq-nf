@@ -58,6 +58,11 @@ def checkParams() {
         error("Input directory: `${params.inputdir}` is empty")
     }
 
+    // Oarfish transcriptome path
+    if (params.transcriptome && !file(params.transcriptome).exists()) {
+        error("Transcriptome: `${params.transcriptome}` does not exist")
+    }
+
     // cDNA read processing params
     if (params.run_cdna_qc) {
         // check valid option is provided for isoform_discovery_method
@@ -85,6 +90,17 @@ def checkParams() {
     // check that if minimap2_junc_bonus is provided than either flag 'alignment_use_annotation' is set or junction bed file is provided
     if (params.minimap2_junc_bonus && !params.alignment_use_annotation && file(params.minimap2_junc_bed).name == 'NO_FILE') {
         error("params.minimap2_junc_bonus has been provided. However neither 'params.alignment_use_annotation' is true nor external junction bed file for minimap2 via 'params.minimap2_junc_bed' has been provided")
+    }
+
+    // Oarfish transcript quantification params
+    if (params.transcriptome) {
+        if (!["ont-cdna", "ont-drna", "pac-bio", "pac-bio-hifi"].contains(params.oarfish_seq_tech)) {
+            error("Invalid option `${params.oarfish_seq_tech}` for parameter 'oarfish_seq_tech'. Valid parameter values are 'ont-cdna', 'ont-drna', 'pac-bio', or 'pac-bio-hifi'.")
+        }
+
+        if (!["no-filters", "nanocount-filters"].contains(params.oarfish_filter_group)) {
+            error("Invalid option `${params.oarfish_filter_group}` for parameter 'oarfish_filter_group'. Valid parameter values are 'no-filters' or 'nanocount-filters'.")
+        }
     }
 
     if (!params.skip_isoform_discovery) {

@@ -28,6 +28,7 @@ include { DROP_FASTQS_ON_READ_COUNT } from "./subworkflows/drop_fastqs_on_read_c
 include { ALIGNMENT } from "./subworkflows/alignment"
 include { CAPTURESEQ_METRICS } from "./subworkflows/captureseq_metrics.nf"
 include { FLAIR } from "./subworkflows/flair"
+include { OARFISH } from "./subworkflows/oarfish"
 
 workflow {
 
@@ -346,6 +347,23 @@ workflow {
     multiqc_config_ch = file(params.multiqc_config, checkIfExists: true)
 
     MULTIQC(multiqc_input_files_ch.collect(), multiqc_config_ch, "final")
+
+    /*
+    * Transcript quantification with Oarfish
+    */
+
+    if (params.transcriptome) {
+        transcriptome_ch = file(params.transcriptome, checkIfExists: true)
+
+        OARFISH(
+            qced_reads_ch,
+            transcriptome_ch,
+            params.oarfish_seq_tech,
+            params.oarfish_filter_group,
+            params.oarfish_model_coverage,
+            params.oarfish_extra_opts,
+        )
+    }
 
     /*
     * ISOFORM DISCOVERY
