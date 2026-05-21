@@ -24,16 +24,46 @@ module_order:
   - samtools
   - rseqc
   - featurecounts
+  - mosdepth:
+      name: "Mosdepth (panel coverage)"
+      anchor: "mosdepth_panel_exons"
+      info: "Coverage depth distribution across capture panel exonic intervals."
+      path_filters:
+        - "*.panel_exons.mosdepth.summary.txt"
+        - "*.panel_exons.mosdepth.global.dist.txt"
+        - "*.panel_exons.mosdepth.region.dist.txt"
+  - mosdepth:
+      name: "Mosdepth (GOI coverage)"
+      anchor: "mosdepth_goi_exons"
+      info: "Coverage depth distribution across genes-of-interest exonic intervals."
+      path_filters:
+        - "*.goi_exons.mosdepth.summary.txt"
+        - "*.goi_exons.mosdepth.global.dist.txt"
+        - "*.goi_exons.mosdepth.region.dist.txt"
   - custom_content
 
 custom_content:
   order:
     - on_target
+    - goi_summary
 
 report_section_order:
+  # Keep CaptureSeq sections together after the standard QC modules. Explicit
+  # numeric ordering is more reliable here than before/after links because this
+  # block mixes custom content with two repeated mosdepth module instances.
   on_target:
-    after: featurecounts_assignments
+    order: -100
+  mosdepth_panel_exons:
+    order: -110
+  mosdepth_goi_exons:
+    order: -120
+  goi_summary:
+    order: -130
 
 extra_fn_clean_exts:
   - type: remove
     pattern: ".filtered"
+  - type: remove
+    pattern: ".panel_exons"
+  - type: remove
+    pattern: ".goi_exons"

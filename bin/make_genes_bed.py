@@ -15,7 +15,9 @@ Matching strategy:
   - Gene list entries are assumed to be clean (no version suffixes).
 
 Outputs:
-  - A sorted BED file of matched gene regions (--output).
+  - A sorted BED file of matched regions (--output).
+  - If --merge-overlaps is set, overlapping or book-ended intervals are
+    merged per gene, chromosome, and strand before writing the BED file.
   - A plain text file listing any genes from the input list that were
     not found in the GTF (--not-found). Only written if there are missing
     genes; absent if all genes were matched.
@@ -33,18 +35,26 @@ import sys
 def parse_args():
     parser = argparse.ArgumentParser(
         description=(
-            "Create a BED file of gene body regions for genes of interest "
-            "from a GTF annotation and a plain text list of gene IDs or names"
+            "Create a BED file of GTF feature intervals for genes of interest "
+            "from a GTF annotation and a plain text list of gene IDs or names. "
+            "Use --feature exon --merge-overlaps to create merged exon BEDs "
+            "for coverage calculations."
         )
     )
-    parser.add_argument("--gtf",       required=True, help="GTF annotation file")
-    parser.add_argument("--gene-list", required=True, help="Plain text file of gene IDs or names, one per line")
-    parser.add_argument("--output",    required=True, help="Output BED file path")
-    parser.add_argument("--not-found", required=True, help="Output plain text file of genes not found in GTF")
+    parser.add_argument("--gtf",       required=True, help="Input GTF annotation file")
+    parser.add_argument("--gene-list", required=True, help="Plain text file of gene IDs or gene names, one per line")
+    parser.add_argument("--output",    required=True, help="Output BED file of matched feature intervals")
+    parser.add_argument("--not-found", required=True, help="Output plain text file for requested genes with no matching feature in the GTF")
     parser.add_argument(
         "--feature", default="gene",
         help="GTF feature type to extract coordinates from (default: gene). "
-             "Use 'transcript' to get per-transcript intervals instead."
+             "Use 'exon' for exon intervals or 'transcript' for per-transcript intervals."
+    )
+    parser.add_argument(
+        "--merge-overlaps", action="store_true",
+        help="Merge overlapping or book-ended matched intervals per gene, "
+             "chromosome, and strand before writing the BED file. Recommended "
+             "for exon BEDs so exons shared by transcript isoforms are counted once."
     )
     return parser.parse_args()
 
@@ -111,6 +121,50 @@ def parse_attribute(attr_string, key):
     """
     match = re.search(rf'{key} "([^"]+)"', attr_string)
     return match.group(1) if match else None
+
+
+def merge_overlapping_records(records):
+    """
+    Merge overlapping or book-ended BED records per gene/chromosome/strand.
+
+    GTF exon features are usually repeated across transcript isoforms. Without
+    this merge step, shared exon sequence would be counted more than once when
+    calculating exon-level coverage breadth and depth.
+
+    Args:
+        records: BED records as (chrom, start, end, name, strand, matched).
+
+    Returns:
+        List of merged records in the same tuple format.
+    """
+    grouped = {}
+    for chrom, start, end, name, strand, matched in records:
+        # Keep genes separate even if their exons overlap on the genome; the
+        # coverage summary is intended to be gene-level, not locus-level.
+        key = (chrom, name, strand, matched)
+        grouped.setdefault(key, []).append((start, end))
+
+    merged_records = []
+    for (chrom, name, strand, matched), intervals in grouped.items():
+        intervals.sort()
+        current_start, current_end = intervals[0]
+
+        for start, end in intervals[1:]:
+            # BED intervals are half-open, so start == current_end means the
+            # intervals touch with no gap and can be treated as one region.
+            if start <= current_end:
+                current_end = max(current_end, end)
+            else:
+                merged_records.append(
+                    (chrom, current_start, current_end, name, strand, matched)
+                )
+                current_start, current_end = start, end
+
+        merged_records.append(
+            (chrom, current_start, current_end, name, strand, matched)
+        )
+
+    return merged_records
 
 
 def main():
@@ -187,6 +241,15 @@ def main():
             "Error: no records written — no genes from the gene list were found "
             f"in the GTF as '{args.feature}' features. Check that gene IDs/names "
             "and the --feature type match your GTF."
+        )
+
+    if args.merge_overlaps:
+        before_merge = len(records)
+        records = merge_overlapping_records(records)
+        print(
+            f"Merged {before_merge} '{args.feature}' record(s) into "
+            f"{len(records)} non-overlapping BED interval(s).",
+            file=sys.stderr
         )
 
     # Sort by chrom then start position for consistent, predictable output
